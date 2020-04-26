@@ -5,19 +5,15 @@
  */
 package gas.quantity;
 
-import javax.measure.quantity.Quantity;
-import javax.measure.unit.SI;
-import static javax.measure.unit.SI.KILOGRAM;
-import static javax.measure.unit.SI.METER;
-import static javax.measure.unit.SI.SECOND;
-import javax.measure.unit.Unit;
+
+import units.UnitsTools;
 
 /**
  *
  * @author gross
  */
-public interface GasFlowRate extends Quantity {
+public interface GasFlowRate {
 
-    public static final Unit<GasFlowRate> UNIT = (Unit<GasFlowRate>) KILOGRAM.divide(SECOND).divide(METER.pow(2));
+    public static final int UNIT = UnitsTools.kg/UnitsTools.s/UnitsTools.m2;
 
 }

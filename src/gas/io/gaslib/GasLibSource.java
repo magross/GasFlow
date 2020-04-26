@@ -7,14 +7,10 @@ package gas.io.gaslib;
 import gas.io.XMLProperty;
 import gas.quantity.CalorificValue;
 import gas.quantity.MolarMass;
-import javax.measure.quantity.Dimensionless;
-import javax.measure.quantity.Pressure;
-import javax.measure.quantity.Temperature;
-import javax.measure.quantity.VolumetricDensity;
-import javax.measure.unit.SI;
-import org.jscience.physics.amount.Amount;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import units.UnitsTools;
+import units.qual.*;
 
 /**
  *
@@ -22,27 +18,27 @@ import org.w3c.dom.Element;
  */
 public class GasLibSource extends GasLibTerminalNode {
 
-    private Amount<CalorificValue> calorificValue;
-    private Amount<Temperature> gasTemperature;
-    private Amount<Dimensionless> heatCapacityA;
-    private Amount<Dimensionless> heatCapacityB;
-    private Amount<Dimensionless> heatCapacityC;
-    private Amount<MolarMass> molarMass;
-    private Amount<VolumetricDensity> normDensity;
-    private Amount<Pressure> pseudocriticalPressure;
-    private Amount<Temperature> pseudocriticalTemperature;
+    private double calorificValue;
+    private double gasTemperature;
+    private double heatCapacityA;
+    private double heatCapacityB;
+    private double heatCapacityC;
+    private double molarMass;
+    private double normDensity;
+    private double pseudocriticalPressure;
+    private double pseudocriticalTemperature;
 
     public GasLibSource() {
         super();
-        calorificValue = (Amount<CalorificValue>) Amount.valueOf("36.4543670654 MJ/m^3");
-        gasTemperature = (Amount<Temperature>) Amount.valueOf("0 C");
-        heatCapacityA = (Amount<Dimensionless>) Amount.valueOf(31.8251781464, Dimensionless.UNIT);
-        heatCapacityB = (Amount<Dimensionless>) Amount.valueOf(-0.00846800766885, Dimensionless.UNIT);
-        heatCapacityC = (Amount<Dimensionless>) Amount.valueOf(7.44647331885e-05, Dimensionless.UNIT);
-        molarMass = (Amount<MolarMass>) Amount.valueOf("18.5674 g/mol");
-        normDensity = (Amount<VolumetricDensity>) Amount.valueOf("0.785 kg/m^3");
-        pseudocriticalPressure = (Amount<Pressure>) Amount.valueOf("45.9293457336 bar");
-        pseudocriticalTemperature = (Amount<Temperature>) Amount.valueOf("188.549758911 K");
+        calorificValue = 36.4543670654 * UnitsTools.MJ/UnitsTools.m3;
+        gasTemperature = 0 * UnitsTools.C;
+        heatCapacityA = 31.8251781464;
+        heatCapacityB = -0.00846800766885;
+        heatCapacityC = 7.44647331885e-05;
+        molarMass = 18.5674 * UnitsTools.g/UnitsTools.mol;
+        normDensity = 0.785 * UnitsTools.kg/UnitsTools.m3;
+        pseudocriticalPressure = 45.9293457336 * UnitsTools.bar;
+        pseudocriticalTemperature = 188.549758911 * UnitsTools.K;
         
         
         createProperty("gasTemperature", gasTemperature);
@@ -58,39 +54,39 @@ public class GasLibSource extends GasLibTerminalNode {
 
     
     
-    public Amount<CalorificValue> getCalorificValue() {
+    public double getCalorificValue() {
         return calorificValue;
     }
 
-    public Amount<Temperature> getGasTemperature() {
+    public @C double getGasTemperature() {
         return gasTemperature;
     }
 
-    public Amount<Dimensionless> getHeatCapacityA() {
+    public double getHeatCapacityA() {
         return heatCapacityA;
     }
 
-    public Amount<Dimensionless> getHeatCapacityB() {
+    public double getHeatCapacityB() {
         return heatCapacityB;
     }
 
-    public Amount<Dimensionless> getHeatCapacityC() {
+    public double getHeatCapacityC() {
         return heatCapacityC;
     }
 
-    public Amount<MolarMass> getMolarMass() {
+    public @gPERmol double getMolarMass() {
         return molarMass;
     }
 
-    public Amount<VolumetricDensity> getNormDensity() {
+    public double getNormDensity() {
         return normDensity;
     }
 
-    public Amount<Pressure> getPseudocriticalPressure() {
+    public @bar double getPseudocriticalPressure() {
         return pseudocriticalPressure;
     }
 
-    public Amount<Temperature> getPseudocriticalTemperature() {
+    public @K double getPseudocriticalTemperature() {
         return pseudocriticalTemperature;
     }
 

@@ -7,10 +7,10 @@ package gas.io.gaslib;
 
 import gas.io.XMLIntersection;
 import java.util.Map;
-import javax.measure.quantity.Dimensionless;
-import javax.measure.quantity.Length;
-import javax.measure.quantity.Pressure;
-import org.jscience.physics.amount.Amount;
+
+
+
+import units.UnitsTools;
 import org.w3c.dom.Element;
 
 /**
@@ -19,30 +19,30 @@ import org.w3c.dom.Element;
  */
 public class GasLibCompressorStation extends GasLibConnection {
     
-    private Amount<Length> diameterIn;
-    private Amount<Length> diameterOut;
-    private Amount<Dimensionless> dragFactorIn;
-    private Amount<Dimensionless> dragFactorOut;
+    private double diameterIn;
+    private double diameterOut;
+    private double dragFactorIn;
+    private double dragFactorOut;
     private XMLIntersection fuelGasVertex;
     private String fuelGasVertexId;
     private boolean gasCoolerExisting;
     private boolean internalBypassRequired;
-    private Amount<Pressure> pressureInMin;
-    private Amount<Pressure> pressureOutMax;
+    private double pressureInMin;
+    private double pressureOutMax;
 
-    public Amount<Length> getDiameterIn() {
+    public double getDiameterIn() {
         return diameterIn;
     }
 
-    public Amount<Length> getDiameterOut() {
+    public double getDiameterOut() {
         return diameterOut;
     }
 
-    public Amount<Dimensionless> getDragFactorIn() {
+    public double getDragFactorIn() {
         return dragFactorIn;
     }
 
-    public Amount<Dimensionless> getDragFactorOut() {
+    public double getDragFactorOut() {
         return dragFactorOut;
     }
 
@@ -58,11 +58,11 @@ public class GasLibCompressorStation extends GasLibConnection {
         return internalBypassRequired;
     }
 
-    public Amount<Pressure> getPressureInMin() {
+    public double getPressureInMin() {
         return pressureInMin;
     }
 
-    public Amount<Pressure> getPressureOutMax() {
+    public double getPressureOutMax() {
         return pressureOutMax;
     }
 

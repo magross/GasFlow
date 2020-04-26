@@ -9,13 +9,11 @@ import gas.io.XMLElementWithID;
 import gas.io.gaslib.GasLibScenarioProperty.Bound;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import javax.measure.quantity.MassFlowRate;
-import javax.measure.quantity.Pressure;
-import javax.measure.quantity.VolumetricFlowRate;
-import org.jscience.physics.amount.Amount;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import units.UnitsTools;
+import units.qual.*;
 
 /**
  *
@@ -92,76 +90,76 @@ public class GasLibScenarioNode extends XMLElementWithID {
         return properties.get("flow_BOTH") != null;
     }
 
-    public Amount<VolumetricFlowRate> getFlowRateBound() {
+    public @m3PERhr double getFlowRateBound() {
         if (properties.get("flow_BOTH") != null) {
             return properties.get("flow_BOTH").getAmount();
         } else if (properties.get("flow_LOWER") != null && properties.get("flow_UPPER") != null) {
-            if (properties.get("flow_LOWER").getAmount().approximates(properties.get("flow_UPPER").getAmount())) {
+            if (properties.get("flow_LOWER").getAmount() == properties.get("flow_UPPER").getAmount()) {
                 return properties.get("flow_LOWER").getAmount();
             }
         }
         throw new AssertionError("");
     }
 
-    public Amount<VolumetricFlowRate> getLowerFlowRateBound() {
+    public @m3PERhr double getLowerFlowRateBound() {
         if (properties.get("flow_LOWER") != null) {
             return properties.get("flow_LOWER").getAmount();
         } else if (properties.get("flow_BOTH") != null) {
             return properties.get("flow_BOTH").getAmount();
         } else {
-            return (Amount<VolumetricFlowRate>) Amount.valueOf("0 m^3/h");
+            return 0 * UnitsTools.m3/UnitsTools.hr;
         }
 
     }
 
-    public Amount<VolumetricFlowRate> getUpperFlowRateBound() {
+    public @m3PERhr double getUpperFlowRateBound() {
         if (properties.get("flow_UPPER") != null) {
             return properties.get("flow_UPPER").getAmount();
         } else if (properties.get("flow_BOTH") != null) {
             return properties.get("flow_BOTH").getAmount();
         } else {
-            return (Amount<VolumetricFlowRate>) Amount.valueOf("0 m^3/h");
+            return 0 * UnitsTools.m3/UnitsTools.hr;
         }
     }
 
-    public void setFlowBound(Amount<MassFlowRate> amount) {
+    public void setFlowBound(double amount) {
         if (properties.get("flow_BOTH") == null) {
             GasLibScenarioProperty property = new GasLibScenarioProperty("flow_BOTH", "m^3/h", "0", Bound.BOTH);
             properties.put("flow_BOTH", property);
         }
-        properties.get("flow_BOTH").setValue("" + amount.doubleValue(amount.getUnit()));
+        properties.get("flow_BOTH").setValue("" + amount);
     }
 
-    public void setLowerFlowBound(Amount amount) {
+    public void setLowerFlowBound(double amount) {
         if (properties.get("flow_LOWER") == null) {
             GasLibScenarioProperty property = new GasLibScenarioProperty("flow_LOWER", "m^3/h", "0", Bound.LOWER);
             properties.put("flow_LOWER", property);
         }
-        properties.get("flow_LOWER").setValue("" + amount.doubleValue(amount.getUnit()));
+        properties.get("flow_LOWER").setValue("" + amount);
     }
 
-    public void setUpperFlowBound(Amount amount) {
+    public void setUpperFlowBound(double amount) {
         if (properties.get("flow_UPPER") == null) {
             GasLibScenarioProperty property = new GasLibScenarioProperty("flow_UPPER", "m^3/h", "0", Bound.UPPER);
             properties.put("flow_UPPER", property);
         }
-        properties.get("flow_UPPER").setValue("" + amount.doubleValue(amount.getUnit()));
+        properties.get("flow_UPPER").setValue("" + amount);
     }
     
-    public void setUpperPressureBound(Amount amount) {
+    public void setUpperPressureBound(double amount) {
         if (properties.get("pressure_UPPER") == null) {
             GasLibScenarioProperty property = new GasLibScenarioProperty("pressure_UPPER", "bar", "0", Bound.UPPER);
             properties.put("pressure_UPPER", property);
         }
-        properties.get("pressure_UPPER").setValue("" + amount.doubleValue(amount.getUnit()));
+        properties.get("pressure_UPPER").setValue("" + amount);
     }
 
-    public void setLowerPressureBound(Amount amount) {
+    public void setLowerPressureBound(double amount) {
         if (properties.get("pressure_LOWER") == null) {
             GasLibScenarioProperty property = new GasLibScenarioProperty("pressure_LOWER", "bar", "0", Bound.LOWER);
             properties.put("pressure_LOWER", property);
         }
-        properties.get("pressure_LOWER").setValue("" + amount.doubleValue(amount.getUnit()));
+        properties.get("pressure_LOWER").setValue("" + amount);
     }    
     
     public boolean hasLowerPressureBound() {
@@ -172,11 +170,11 @@ public class GasLibScenarioNode extends XMLElementWithID {
         return properties.get("pressure_UPPER") != null;
     }
     
-    public Amount<Pressure> getLowerPressureBound() {
+    public @bar double getLowerPressureBound() {
         return properties.get("pressure_LOWER").getAmount();
     }
 
-    public Amount<Pressure> getUpperPressureBound() {
+    public @bar double getUpperPressureBound() {
         return properties.get("pressure_UPPER").getAmount();
     }
 

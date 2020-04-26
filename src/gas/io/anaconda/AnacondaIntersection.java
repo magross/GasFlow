@@ -11,9 +11,9 @@ import static gas.io.IntersectionType.NODE;
 import static gas.io.IntersectionType.SINK;
 import static gas.io.IntersectionType.SOURCE;
 import gas.io.XMLProperty;
-import javax.measure.quantity.Pressure;
-import javax.measure.quantity.Temperature;
-import org.jscience.physics.amount.Amount;
+
+
+import units.UnitsTools;
 
 /**
  *
@@ -38,9 +38,9 @@ public abstract class AnacondaIntersection extends XMLIntersection {
     private String idPos;
     private double maxCtrl;
     private double minCtrl;
-    private Amount<Pressure> pressureInit;
+    private double pressureInit;
     private double scalingOfControl; 
-    private Amount<Temperature> temperature;
+    private double temperature;
 
     public boolean isControllable() {
         return controllable;
@@ -58,7 +58,7 @@ public abstract class AnacondaIntersection extends XMLIntersection {
         return minCtrl;
     }
 
-    public Amount<Pressure> getPressureInit() {
+    public double getPressureInit() {
         return pressureInit;
     }
 
@@ -66,7 +66,7 @@ public abstract class AnacondaIntersection extends XMLIntersection {
         return scalingOfControl;
     }
 
-    public Amount<Temperature> getTemperature() {
+    public double getTemperature() {
         return temperature; 
     }
 

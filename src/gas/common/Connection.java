@@ -6,8 +6,8 @@
 package gas.common;
 
 import gas.io.ConnectionType;
-import javax.measure.quantity.VolumetricFlowRate;
-import org.jscience.physics.amount.Amount;
+
+import units.UnitsTools;
 
 /**
  *
@@ -15,9 +15,9 @@ import org.jscience.physics.amount.Amount;
  */
 public interface Connection<I extends Intersection> {
 
-    Amount<VolumetricFlowRate> getFlowMax();
+    double getFlowMax();
 
-    Amount<VolumetricFlowRate> getFlowMin();
+    double getFlowMin();
 
     I getFrom();
 

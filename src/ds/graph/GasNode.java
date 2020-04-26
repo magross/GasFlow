@@ -5,9 +5,9 @@
 
 package ds.graph;
 
-import javax.measure.quantity.Length;
-import javax.measure.quantity.Volume;
-import org.jscience.physics.amount.Amount;
+
+
+import units.UnitsTools;
 
 /**
  *
@@ -16,8 +16,8 @@ import org.jscience.physics.amount.Amount;
 public class GasNode implements Identifiable {
 
     private int id;
-    private Amount<Length> height;
-    private Amount<Volume> volume;
+    private double height;
+    private double volume;
 
     public GasNode() {
         
@@ -27,30 +27,30 @@ public class GasNode implements Identifiable {
         id = i;
     }
 
-    public GasNode(int id, Amount<Length> height) {
+    public GasNode(int id, double height) {
         this.id = id;
         this.height = height;
     }    
     
-    public GasNode(int id, Amount<Length> height, Amount<Volume> volume) {
+    public GasNode(int id, double height, double volume) {
         this.id = id;
         this.height = height;
         this.volume = volume;
     }
 
-    public Amount<Length> getHeight() {
+    public double getHeight() {
         return height;
     }
 
-    public void setHeight(Amount<Length> height) {
+    public void setHeight(double height) {
         this.height = height;
     }
 
-    public Amount<Volume> getVolume() {
+    public double getVolume() {
         return volume;
     }
 
-    public void setVolume(Amount<Volume> volume) {
+    public void setVolume(double volume) {
         this.volume = volume;
     }
 

@@ -7,11 +7,7 @@ package gas.io;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import javax.measure.quantity.VolumetricFlowRate;
-import static javax.measure.unit.NonSI.HOUR;
-import static javax.measure.unit.SI.METER;
-import javax.measure.unit.Unit;
-import org.jscience.physics.amount.Amount;
+import units.UnitsTools;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -22,8 +18,8 @@ import org.w3c.dom.Node;
  */
 public abstract class XMLConnection extends XMLElementWithID {
 
-    protected  Amount<VolumetricFlowRate> flowMax;
-    protected  Amount<VolumetricFlowRate> flowMin;
+    protected  double flowMax;
+    protected  double flowMin;
     protected  XMLIntersection from;
     protected  volatile String fromId;
     protected  final Map<String, XMLProperty> properties;
@@ -32,8 +28,8 @@ public abstract class XMLConnection extends XMLElementWithID {
 
     public XMLConnection() {
         properties = new LinkedHashMap<>();
-        flowMax = Amount.valueOf(10000000, (Unit<VolumetricFlowRate>) METER.pow(3).divide(HOUR));
-        flowMin = Amount.valueOf(-10000000, (Unit<VolumetricFlowRate>) METER.pow(3).divide(HOUR));
+        flowMax = 10000000 * UnitsTools.m3/UnitsTools.hr;
+        flowMin = -10000000 * UnitsTools.m3/UnitsTools.hr;
     }
 
     public void connectToIntersections(Map<String, XMLIntersection> intersections) {
@@ -49,11 +45,11 @@ public abstract class XMLConnection extends XMLElementWithID {
         }
     }
 
-    public Amount<VolumetricFlowRate> getFlowMax() {
+    public double getFlowMax() {
         return flowMax;
     }
 
-    public Amount<VolumetricFlowRate> getFlowMin() {
+    public double getFlowMin() {
         return flowMin;
     }
 
@@ -113,13 +109,13 @@ public abstract class XMLConnection extends XMLElementWithID {
     protected void parseProperties() {
         XMLProperty fMax = properties.get("flowMax");
         if (fMax.getUnit().equals("1000m_cube_per_hour") || fMax.getUnit().equals("m/m")) {
-            flowMax = Amount.valueOf(Double.parseDouble(fMax.getValue()) * 1000, (Unit<VolumetricFlowRate>) Unit.valueOf("m^3 / h"));
+            flowMax = Double.parseDouble(fMax.getValue()) * 1000 * UnitsTools.m3/UnitsTools.hr;
         } else {
             throw new AssertionError("Volumetric flow rate unit unknown: " + fMax.getUnit());
         }
         XMLProperty fMin = properties.get("flowMin");
         if (fMin.getUnit().equals("1000m_cube_per_hour") || fMin.getUnit().equals("m/m")) {
-            flowMin = Amount.valueOf(Double.parseDouble(fMax.getValue()) * 1000, (Unit<VolumetricFlowRate>) Unit.valueOf("m^3 / h"));
+            flowMin = Double.parseDouble(fMax.getValue()) * 1000 * UnitsTools.m3/UnitsTools.hr;
         } else {
             throw new AssertionError("Volumetric flow rate unit unknown: " + fMin.getUnit());
         }

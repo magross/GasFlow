@@ -10,12 +10,10 @@ import com.google.common.collect.HashBiMap;
 import ds.graph.DynamicNetwork;
 import ds.graph.GasEdge;
 import ds.graph.GasNode;
-import javax.measure.quantity.Volume;
-import static javax.measure.unit.SI.CUBIC_METRE;
-import org.jscience.physics.amount.Amount;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import units.UnitsTools;
 
 /**
  *
@@ -151,9 +149,9 @@ public abstract class XMLNetworkFile<C extends XMLConnection,I extends XMLInters
         }
         int index = 0;
         for (GasNode node : network.nodes()) {
-            Amount<Volume> volume = Amount.valueOf(0, CUBIC_METRE);
+            double volume = 0 * UnitsTools.m3;
             for (GasEdge edge : network.incidentEdges(node)) {
-                volume = volume.plus(edge.getHalfVolume());
+                volume = volume + edge.getHalfVolume();
             }
             node.setVolume(volume);
             node.setId(index);

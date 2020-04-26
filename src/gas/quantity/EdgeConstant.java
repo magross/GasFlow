@@ -5,17 +5,15 @@
  */
 package gas.quantity;
 
-import javax.measure.quantity.Quantity;
-import static javax.measure.unit.SI.METER;
-import static javax.measure.unit.SI.SECOND;
-import javax.measure.unit.Unit;
+
+import units.UnitsTools;
 
 /**
  *
  * @author gross
  */
-public interface EdgeConstant extends Quantity {
+public interface EdgeConstant {
 
-    public static final Unit<EdgeConstant> UNIT = (Unit<EdgeConstant>) SECOND.pow(2).times(METER.pow(2));
+    public static final double UNIT = UnitsTools.s*UnitsTools.s*UnitsTools.m2;
 
 }

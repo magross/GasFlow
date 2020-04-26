@@ -6,12 +6,7 @@
 package ds.graph;
 
 import static java.lang.Math.PI;
-import javax.measure.quantity.Dimensionless;
-import javax.measure.quantity.Length;
-import javax.measure.quantity.Volume;
-import javax.measure.quantity.VolumetricFlowRate;
-import static javax.measure.unit.SI.METER;
-import org.jscience.physics.amount.Amount;
+import units.UnitsTools;
 
 /**
  *
@@ -19,12 +14,12 @@ import org.jscience.physics.amount.Amount;
  */
 public class GasEdge extends AbstractEdge<GasNode> implements Identifiable {
 
-    private Amount<Length> diameter;
-    private Amount<VolumetricFlowRate> flowMax;
-    private Amount<VolumetricFlowRate> flowMin;
+    private double diameter;
+    private double flowMax;
+    private double flowMin;
     private int id;
-    private Amount<Length> length;
-    private Amount<Length> roughness;
+    private double length;
+    private double roughness;
 
     public GasEdge(GasNode start, GasNode end) {
         this(start, end, -1);
@@ -33,12 +28,12 @@ public class GasEdge extends AbstractEdge<GasNode> implements Identifiable {
     public GasEdge(GasNode start, GasNode end, int id) {
         super(start, end);
         this.id = id;        
-        this.diameter = Amount.valueOf(0, METER);
-        this.length = Amount.valueOf(0, METER);
-        this.roughness = Amount.valueOf(0, METER);
+        this.diameter = 0 * UnitsTools.m;
+        this.length = 0 * UnitsTools.m;
+        this.roughness = 0 * UnitsTools.m;
     }
 
-    public GasEdge(GasNode start, GasNode end, int id, Amount<Length> diameter, Amount<Length> length, Amount<Length> roughness) {
+    public GasEdge(GasNode start, GasNode end, int id, double diameter, double length, double roughness) {
         this(start, end, id);
         this.diameter = diameter;
         this.length = length;
@@ -58,52 +53,52 @@ public class GasEdge extends AbstractEdge<GasNode> implements Identifiable {
         this.id = id;
     }
 
-    public Amount<Length> getDiameter() {
+    public double getDiameter() {
         return diameter;
     }
 
-    public void setDiameter(Amount<Length> diameter) {
+    public void setDiameter(double diameter) {
         this.diameter = diameter;
     }
 
-    public Amount<VolumetricFlowRate> getFlowMax() {
+    public double getFlowMax() {
         return flowMax;
     }
 
-    public void setFlowMax(Amount<VolumetricFlowRate> flowMax) {
+    public void setFlowMax(double flowMax) {
         this.flowMax = flowMax;
     }
 
-    public Amount<VolumetricFlowRate> getFlowMin() {
+    public double getFlowMin() {
         return flowMin;
     }
 
-    public void setFlowMin(Amount<VolumetricFlowRate> flowMin) {
+    public void setFlowMin(double flowMin) {
         this.flowMin = flowMin;
     }
 
-    public Amount<Length> getLength() {
+    public double getLength() {
         return length;
     }
 
-    public void setLength(Amount<Length> length) {
+    public void setLength(double length) {
         this.length = length;
     }
 
-    public Amount<Dimensionless> getSlope() {
-        return (Amount<Dimensionless>) (end().getHeight().minus(start().getHeight()).divide(length));
+    public double getSlope() {
+        return (end().getHeight() - start().getHeight())/length;
     }
     
-    public Amount<Length> getRoughness() {
+    public double getRoughness() {
         return roughness;
     }
 
-    public void setRoughness(Amount<Length> roughness) {
+    public void setRoughness(double roughness) {
         this.roughness = roughness;
     }
     
-    public Amount<Volume> getHalfVolume() {
-        return (Amount<Volume>) diameter.pow(2).times(PI / 8.0).times(length);
+    public double getHalfVolume() {
+        return diameter*diameter*(PI / 8.0)*length;
     }
 
     @Override

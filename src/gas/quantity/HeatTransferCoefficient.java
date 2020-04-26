@@ -5,12 +5,12 @@
  */
 package gas.quantity;
 
-import javax.measure.quantity.Quantity;
+
 
 /**
  *
  * @author gross
  */
-public interface HeatTransferCoefficient extends Quantity {
+public interface HeatTransferCoefficient {
 
 }

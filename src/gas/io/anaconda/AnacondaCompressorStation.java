@@ -5,13 +5,6 @@
 
 package gas.io.anaconda;
 
-import javax.measure.quantity.Dimensionless;
-import javax.measure.quantity.Duration;
-import javax.measure.quantity.Power;
-import javax.measure.quantity.Volume;
-import javax.measure.quantity.VolumetricFlowRate;
-import org.jscience.physics.amount.Amount;
-
 /**
  *
  * @author Martin Groß
@@ -19,43 +12,43 @@ import org.jscience.physics.amount.Amount;
 public class AnacondaCompressorStation extends AnacondaConnection {
     
     private String bypassValveId;
-    private Amount<Dimensionless> efficiency;
-    private Amount<VolumetricFlowRate> flowInit;
-    private Amount<Duration> minDownTime;
-    private Amount<Duration> minRunTime;
-    private Amount<Power> powerMax;
-    private Amount<Power> powerMin;
+    private double efficiency;
+    private double flowInit;
+    private double minDownTime;
+    private double minRunTime;
+    private double powerMax;
+    private double powerMin;
     private double scalingOfControl;
-    private Amount<Volume> shutdownCosts;
-    private Amount<Volume> startupCosts;
-    private Amount<Dimensionless> specificFuelConsumption;
+    private double shutdownCosts;
+    private double startupCosts;
+    private double specificFuelConsumption;
     private String typeOfControl;
 
     public String getBypassValveId() {
         return bypassValveId;
     }
 
-    public Amount<Dimensionless> getEfficiency() {
+    public double getEfficiency() {
         return efficiency;
     }
 
-    public Amount<VolumetricFlowRate> getFlowInit() {
+    public double getFlowInit() {
         return flowInit;
     }
 
-    public Amount<Duration> getMinDownTime() {
+    public double getMinDownTime() {
         return minDownTime;
     }
 
-    public Amount<Duration> getMinRunTime() {
+    public double getMinRunTime() {
         return minRunTime;
     }
 
-    public Amount<Power> getPowerMax() {
+    public double getPowerMax() {
         return powerMax;
     }
 
-    public Amount<Power> getPowerMin() {
+    public double getPowerMin() {
         return powerMin;
     }
 
@@ -63,15 +56,15 @@ public class AnacondaCompressorStation extends AnacondaConnection {
         return scalingOfControl;
     }
 
-    public Amount<Volume> getShutdownCosts() {
+    public double getShutdownCosts() {
         return shutdownCosts;
     }
 
-    public Amount<Volume> getStartupCosts() {
+    public double getStartupCosts() {
         return startupCosts;
     }
 
-    public Amount<Dimensionless> getSpecificFuelConsumption() {
+    public double getSpecificFuelConsumption() {
         return specificFuelConsumption;
     }
 

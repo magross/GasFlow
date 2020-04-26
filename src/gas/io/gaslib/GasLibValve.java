@@ -5,8 +5,8 @@
 
 package gas.io.gaslib;
 
-import javax.measure.quantity.Pressure;
-import org.jscience.physics.amount.Amount;
+
+import units.UnitsTools;
 
 /**
  *
@@ -14,9 +14,9 @@ import org.jscience.physics.amount.Amount;
  */
 public class GasLibValve extends GasLibConnection {
 
-    private Amount<Pressure> pressureDifferentialMax;
+    private double pressureDifferentialMax;
 
-    public Amount<Pressure> getPressureDifferentialMax() {
+    public double getPressureDifferentialMax() {
         return pressureDifferentialMax;
     }
 

@@ -15,16 +15,8 @@ import gas.ds.GasFlow;
 import gas.ds.ForwardComputationStep;
 import gas.problem.SourceSinkForwardComputationProblem;
 import gas.quantity.EdgeConstant;
-import javax.measure.quantity.Duration;
-import javax.measure.quantity.Mass;
-import javax.measure.quantity.MassFlowRate;
-import javax.measure.quantity.Pressure;
-import static javax.measure.unit.NonSI.BAR;
-import javax.measure.unit.SI;
-import static javax.measure.unit.SI.KILOGRAM;
-import javax.measure.unit.Unit;
 import javolution.lang.MathLib;
-import org.jscience.physics.amount.Amount;
+import units.UnitsTools;
 
 /**
  *
@@ -40,36 +32,8 @@ public class ISO3ForwardComputationStep extends Algorithm<SourceSinkForwardCompu
     
     
 
-    protected Amount sgnSqrt(Amount amount) {
-        Unit unit = amount.getUnit();
-        double oldMax = amount.getMaximumValue();
-        double oldMin = amount.getMinimumValue();
-
-        if (oldMin < 0) {
-            oldMin = -oldMin;
-        }
-        double min = MathLib.sqrt(oldMin);
-        if (oldMin < 0) {
-            min = -min;
-        }
-        min = (min < 0) ? min * INCREMENT : min * DECREMENT;
-
-        if (oldMax < 0) {
-            oldMax = -oldMax;
-        }
-        double max = MathLib.sqrt(oldMax);
-        if (oldMax < 0) {
-            max = -max;
-        }
-        max = (max < 0) ? max * DECREMENT : max * INCREMENT;
-
-        if (max < min) {
-            double b = min;
-            min = max;
-            max = b;
-        }
-        
-        return Amount.valueOf((max + min) / 2.0 , (max - min) / 2.0, unit.root(2));
+    protected double sgnSqrt(double amount) {
+        return MathLib.sqrt(amount);
     }
     
     @Override
@@ -78,47 +42,47 @@ public class ISO3ForwardComputationStep extends Algorithm<SourceSinkForwardCompu
         ForwardComputationStep flow = new ForwardComputationStep(problem.getNetwork());
         GasFlow currentFlow = flow.getNextGasFlow();    
 
-        IdentifiableAmountMapping<GasNode, Pressure> pressures = problem.getInitialPressures();
-        IdentifiableAmountMapping<GasEdge, EdgeConstant> edgeConstants = problem.getEdgeConstants();
-        IdentifiableAmountMapping<GasEdge, MassFlowRate> massFlowRates = currentFlow.getMassFlowRates();
-        IdentifiableAmountMapping<GasNode, MassFlowRate> massFlowRateDeltas = new IdentifiableAmountMapping<>(network.nodes());
-        IdentifiableAmountMapping<GasNode, Pressure> newPressures = currentFlow.getPressures();
+        IdentifiableAmountMapping<GasNode, Double> pressures = problem.getInitialPressures();
+        IdentifiableAmountMapping<GasEdge, Double> edgeConstants = problem.getEdgeConstants();
+        IdentifiableAmountMapping<GasEdge, Double> massFlowRates = currentFlow.getMassFlowRates();
+        IdentifiableAmountMapping<GasNode, Double> massFlowRateDeltas = new IdentifiableAmountMapping<>(network.nodes());
+        IdentifiableAmountMapping<GasNode, Double> newPressures = currentFlow.getPressures();
 
         for (GasEdge edge : network.edges()) {
-            Amount edgeConstant = edgeConstants.get(edge);
-            Amount<Pressure> pressureStart = pressures.get(edge.start());
-            Amount<Pressure> pressureEnd = pressures.get(edge.end());
+            double edgeConstant = edgeConstants.get(edge);
+            double pressureStart = pressures.get(edge.start());
+            double pressureEnd = pressures.get(edge.end());
 
-            Amount pressureStartSq = pressureStart.pow(2);
+            double pressureStartSq = pressureStart*pressureStart;
 
-            Amount pressureEndSq = pressureEnd.pow(2);
-            Amount massFlowRateSq = pressureStartSq.minus(pressureEndSq).times(edgeConstant);
-            Amount<MassFlowRate> massFlowRate = sgnSqrt(massFlowRateSq);
+            double pressureEndSq = pressureEnd*pressureEnd;
+            double massFlowRateSq = (pressureStartSq - pressureEndSq) * edgeConstant;
+            double massFlowRate = sgnSqrt(massFlowRateSq);
             massFlowRates.set(edge, massFlowRate);
         }
 
         for (GasNode node : network.nodes()) {
             //System.out.println("Step: Processing node " + node.id());
-            Amount<MassFlowRate> massFlowRateDelta = Amount.valueOf(0, MassFlowRate.UNIT);
+            double massFlowRateDelta = 0 * UnitsTools.kg/UnitsTools.s;
             for (GasEdge edge : network.incomingEdges(node)) {
-                massFlowRateDelta = massFlowRateDelta.plus(massFlowRates.get(edge));
+                massFlowRateDelta = massFlowRateDelta + massFlowRates.get(edge);
             }
             for (GasEdge edge : network.outgoingEdges(node)) {
-                massFlowRateDelta = massFlowRateDelta.minus(massFlowRates.get(edge));
+                massFlowRateDelta = massFlowRateDelta - massFlowRates.get(edge);
             }
             massFlowRateDeltas.set(node, massFlowRateDelta);
         }
 
-        Amount<Duration> timeStep = problem.getTimeStep();
+        double timeStep = problem.getTimeStep();
 
         for (GasNode node : network.nodes()) {
             //System.out.println(problem.getSpeedOfSound().getRelativeError());
-            Amount<Mass> gasMass = pressures.get(node).divide(problem.getSpeedOfSound().pow(2)).times(node.getVolume()).to(KILOGRAM);
+            double gasMass = UnitsTools.g_to_kg(pressures.get(node)/(problem.getSpeedOfSound()*problem.getSpeedOfSound())*node.getVolume());
             //System.out.println("m O: " + gasMass.getRelativeError());
-            Amount<MassFlowRate> massFlowRateDelta = massFlowRateDeltas.get(node);
-            Amount newDensity = gasMass.plus(massFlowRateDelta.times(timeStep)).divide(node.getVolume());
+            double massFlowRateDelta = massFlowRateDeltas.get(node);
+            double newDensity = (gasMass + (massFlowRateDelta*timeStep))/node.getVolume();
 
-            Amount newPressure = newDensity.times(problem.getSpeedOfSound().pow(2)).to(BAR);
+            double newPressure = UnitsTools.pa_to_bar(newDensity*problem.getSpeedOfSound()*problem.getSpeedOfSound());
             //System.out.println("p^2 N: " + newPressure.getRelativeError());
             newPressures.set(node, newPressure);
         }

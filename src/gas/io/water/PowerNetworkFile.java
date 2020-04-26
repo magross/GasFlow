@@ -75,7 +75,7 @@ public class PowerNetworkFile {
     public DynamicNetwork<GasNode, GasEdge> readFromFile(String fileName) {
         List<String> list = new ArrayList<>();
         try (Stream<String> stream = Files.lines(Paths.get(fileName))) {
-            list = stream
+            list = (List<String>) stream
                     .filter(line -> !line.isEmpty() && !line.startsWith("%"))
                     .collect(Collectors.toList());
         } catch (IOException ex) {

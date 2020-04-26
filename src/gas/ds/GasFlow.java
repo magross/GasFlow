@@ -9,8 +9,6 @@ import ds.graph.GasEdge;
 import ds.graph.GasNode;
 import ds.graph.Graph;
 import ds.graph.IdentifiableAmountMapping;
-import javax.measure.quantity.MassFlowRate;
-import javax.measure.quantity.Pressure;
 
 /**
  *
@@ -19,8 +17,8 @@ import javax.measure.quantity.Pressure;
 public class GasFlow {
 
     private final Graph<GasNode, GasEdge> network;
-    private final IdentifiableAmountMapping<GasEdge, MassFlowRate> massFlowRates;
-    private IdentifiableAmountMapping<GasNode, Pressure> pressures;
+    private final IdentifiableAmountMapping<GasEdge, Double> massFlowRates;
+    private IdentifiableAmountMapping<GasNode, Double> pressures;
 
     public GasFlow(Graph<GasNode, GasEdge> network) {
         this.network = network;
@@ -28,15 +26,15 @@ public class GasFlow {
         pressures = new IdentifiableAmountMapping<>(network.nodes());
     }
 
-    public IdentifiableAmountMapping<GasEdge, MassFlowRate> getMassFlowRates() {
+    public IdentifiableAmountMapping<GasEdge, Double> getMassFlowRates() {
         return massFlowRates;
     }
 
-    public IdentifiableAmountMapping<GasNode, Pressure> getPressures() {
+    public IdentifiableAmountMapping<GasNode, Double> getPressures() {
         return pressures;
     }
 
-    public void setPressures(IdentifiableAmountMapping<GasNode, Pressure> pressures) {
+    public void setPressures(IdentifiableAmountMapping<GasNode, Double> pressures) {
         this.pressures = pressures;
     }
 

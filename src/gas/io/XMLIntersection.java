@@ -10,12 +10,11 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import javax.measure.quantity.Length;
-import javax.measure.quantity.Pressure;
-import org.jscience.physics.amount.Amount;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import units.UnitsTools;
+import units.qual.*;
 
 /**
  *
@@ -24,9 +23,9 @@ import org.w3c.dom.Node;
 public abstract class XMLIntersection extends XMLElementWithID implements Intersection {
 
     private final List<XMLConnection> connections;
-    private Amount<Length> height;
-    private Amount<Pressure> pressureMax;
-    private Amount<Pressure> pressureMin;
+    private double height;
+    private double pressureMax;
+    private double pressureMin;
     protected final Map<String, XMLProperty> properties;
     private double x;
     private double y;
@@ -35,17 +34,17 @@ public abstract class XMLIntersection extends XMLElementWithID implements Inters
         super();
         connections = new LinkedList<>();
         properties = new LinkedHashMap<>();
-        height = (Amount<Length>) Amount.valueOf("0 m");
-        pressureMin = (Amount<Pressure>) Amount.valueOf("1.01325 bar");
-        pressureMax = (Amount<Pressure>) Amount.valueOf("81.01325 bar");
+        height = 0 * UnitsTools.m;
+        pressureMin = 1.01325 * UnitsTools.bar;
+        pressureMax = 81.01325 * UnitsTools.bar;
 
         createProperty("height", height);
         createProperty("pressureMin", pressureMin);
         createProperty("pressureMax", pressureMax);
     }
 
-    protected void createProperty(String name, Amount amount) {
-        properties.put(name, new XMLProperty(name, amount.getUnit().toString(), "" + amount.doubleValue(amount.getUnit())));
+    protected void createProperty(String name, double amount) {
+        properties.put(name, new XMLProperty(name, "" + amount, "" + amount));
     }
 
     @Override
@@ -58,15 +57,15 @@ public abstract class XMLIntersection extends XMLElementWithID implements Inters
         return connections;
     }
 
-    public Amount<Length> getHeight() {
+    public double getHeight() {
         return height;
     }
 
-    public Amount<Pressure> getPressureMax() {
+    public @bar double getPressureMax() {
         return pressureMax;
     }
 
-    public Amount<Pressure> getPressureMin() {
+    public @bar double getPressureMin() {
         return pressureMin;
     }
 

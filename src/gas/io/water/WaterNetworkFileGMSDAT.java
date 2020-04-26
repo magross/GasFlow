@@ -47,7 +47,7 @@ public class WaterNetworkFileGMSDAT {
         numberOfSinks = 0;
         numberOfTerminals = 0;
         try (Stream<String> stream = Files.lines(Paths.get(fileName))) {
-            list = stream
+            list = (List<String>) stream
                     .filter(line -> (!line.isEmpty() && !line.contains("#") && !line.contains("=") && !line.trim().equals(";")
                             && !line.contains("alias") && !line.contains("set")) 
                             || line.contains("source") || line.contains("param: NODE") || line.contains("param: PIPE"))

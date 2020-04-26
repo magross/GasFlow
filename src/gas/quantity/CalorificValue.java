@@ -5,12 +5,12 @@
  */
 package gas.quantity;
 
-import javax.measure.quantity.Quantity;
+
 
 /**
  *
  * @author gross
  */
-public interface CalorificValue extends Quantity {
+public interface CalorificValue {
 
 }

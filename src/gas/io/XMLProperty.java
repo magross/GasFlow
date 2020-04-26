@@ -4,13 +4,7 @@
  */
 package gas.io;
 
-import javax.measure.quantity.Temperature;
-import javax.measure.quantity.VolumetricFlowRate;
-import javax.measure.unit.SI;
-import static javax.measure.unit.SI.CELSIUS;
-import static javax.measure.unit.SI.KELVIN;
-import javax.measure.unit.Unit;
-import org.jscience.physics.amount.Amount;
+import units.UnitsTools;
 
 /**
  *
@@ -18,7 +12,7 @@ import org.jscience.physics.amount.Amount;
  */
 public class XMLProperty extends XMLElement {
 
-    private Amount amount;
+    private Double amount;
     private String name;
     private String unit;
     private String value;
@@ -37,36 +31,36 @@ public class XMLProperty extends XMLElement {
         this.value = value;
     }
 
-    public Amount getAmount() {
+    public double getAmount() {
         if (amount != null) {
-            return amount;
+            return amount.doubleValue();
         } else {
             switch (unit) {
-                case "barg":
-                    amount = Amount.valueOf((Double.parseDouble(value)+1) + "bar");
+                case "bar":
+                    amount = (Double.parseDouble(value)+1) * UnitsTools.bar;
                     break;
                 case "Celsius":
-                    amount = Amount.valueOf(value + "C");
+                    amount = Double.parseDouble(value) * UnitsTools.C;
                     break;
                 case "1000m_cube_per_hour":
-                    amount = Amount.valueOf(Double.parseDouble(value) * 1000, (Unit<VolumetricFlowRate>) Unit.valueOf("m^3 / h"));
+                    amount = (Double.parseDouble(value) * 1000) * UnitsTools.m3/UnitsTools.hr;
                     break;
                 case "kg_per_kmol":
-                    amount = Amount.valueOf(value + "g/mol");
+                    amount = Double.parseDouble(value) * UnitsTools.g/UnitsTools.mol;
                     break;
                 case "meter":
-                    amount = Amount.valueOf(value + "m");
+                    amount = Double.parseDouble(value) * UnitsTools.m;
                     break;
                 default:
                     try {
-                        amount = Amount.valueOf(value + unit);
+                        amount = Double.parseDouble(value);
                     } catch (Exception e) {
                         System.err.println("XMLProperty.getAmount(): " + e.getMessage());
                         System.err.println(name + ": " + value + " '" + unit + "'");
-                        return null;
+                        return 0;
                     }
             }
-            return amount;
+            return amount.doubleValue();
         }
     }
 

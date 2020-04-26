@@ -35,12 +35,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import javax.measure.quantity.MassFlowRate;
-import javax.measure.quantity.Pressure;
-import javax.measure.quantity.VolumetricFlowRate;
-import javax.measure.unit.SI;
-import static javax.measure.unit.SI.JOULE;
-import org.jscience.physics.amount.Amount;
+import units.UnitsTools;
 
 /**
  *
@@ -60,7 +55,7 @@ public class BoundPropagation<N, E extends AbstractEdge<N>> {
     private transient Map<Object, GasLibConnection> edgeConnections;
     private transient Map<Object, GasLibIntersection> nodeIntersections;
     private transient GasLibNetworkFile networkFile;
-    private Map<E, Amount> edgeParameters;
+    private Map<E, Double> edgeParameters;
 
     public BoundPropagation() {
         edgeParameters = new HashMap<>();
@@ -91,24 +86,23 @@ public class BoundPropagation<N, E extends AbstractEdge<N>> {
         return network;
     }
 
-    protected Amount computeParameter(E edge) {
+    protected double computeParameter(E edge) {
         GasLibConnection connection = edgeConnections.get(edge);
         if (connection instanceof GasLibPipe) {
             GasLibPipe pipe = (GasLibPipe) connection;
             return pipe.computeSiamCoefficient(networkFile);
         } else {
-            return Amount.valueOf(0, SI.KILOMETER.times(JOULE).divide(SI.GRAM).divide(SI.MILLIMETER.pow(5)));
+            return 0 * UnitsTools.kg*UnitsTools.J/UnitsTools.g/(UnitsTools.mm*UnitsTools.mm*UnitsTools.mm*UnitsTools.mm*UnitsTools.mm);
         }
     }
 
-    protected Amount serialComposition(E edge1, E edge2) {
-        return edgeParameters.get(edge1).plus(edgeParameters.get(edge2));
+    protected double serialComposition(E edge1, E edge2) {
+        return edgeParameters.get(edge1) + edgeParameters.get(edge2);
     }
 
-    protected Amount parallelComposition(E edge1, E edge2) {
-        Amount denom = edgeParameters.get(edge1).sqrt().plus(edgeParameters.get(edge2).sqrt());
-        return edgeParameters.get(edge1).times(edgeParameters.get(edge2))
-                .divide(denom.pow(2));
+    protected double parallelComposition(E edge1, E edge2) {
+        double denom = Math.sqrt(edgeParameters.get(edge1)) + Math.sqrt(edgeParameters.get(edge2));
+        return edgeParameters.get(edge1)*edgeParameters.get(edge2)/(denom*denom);
     }
 
     public void setNetwork(DynamicNetwork<N, E> network) {
@@ -241,7 +235,7 @@ public class BoundPropagation<N, E extends AbstractEdge<N>> {
                         System.out.println("Serial Edge");
                     }
                     GasLibPipe newC = (GasLibPipe) networkFile.addEdgeAndConnection((GasEdge) newEdge, serialComposition(edge, edge2));
-                    if (newC.getLength().approximates(Amount.valueOf("0 mm"))) {
+                    if (newC.getLength() == 0 * UnitsTools.mm) {
                         System.err.println(edgeC + " " + edge2C);
 
                     }
@@ -266,11 +260,6 @@ public class BoundPropagation<N, E extends AbstractEdge<N>> {
                         if (DEBUG) {
                             System.out.println("Other, Case 1");
                         }
-                        /*
-                        E edge3 = network.incidentEdges(other).getFirst();
-                        network.removeEdge(edge3);
-                        network.removeNode(other);
-                        degreeTwo.remove(other);*/
                         rerun = true;
                         break;
                     case 2:
@@ -296,11 +285,6 @@ public class BoundPropagation<N, E extends AbstractEdge<N>> {
                         if (DEBUG) {
                             System.out.println("Other2, Case 1");
                         }
-                        /*
-                        E edge3 = network.incidentEdges(other2).getFirst();
-                        network.removeEdge(edge3);
-                        network.removeNode(other2);
-                        degreeTwo.remove(other2);*/
                         rerun = true;
                         break;
                     case 2:
@@ -498,72 +482,71 @@ public class BoundPropagation<N, E extends AbstractEdge<N>> {
                 N neighbor = leafEdge.opposite(candidate);
                 if (candidate instanceof GasNode) {
                     GasLibIntersection candidateI = conversion.getIntersection((GasNode) candidate);
-                    Amount<VolumetricFlowRate> balanceC = scenario.getBalance(candidateI);
-                    Amount<VolumetricFlowRate> lowerFlowRateBoundC = scenario.getLowerFlowRateBound(candidateI);
-                    Amount<VolumetricFlowRate> upperFlowRateBoundC = scenario.getUpperFlowRateBound(candidateI);
+                    double balanceC = scenario.getBalance(candidateI);
+                    double lowerFlowRateBoundC = scenario.getLowerFlowRateBound(candidateI);
+                    double upperFlowRateBoundC = scenario.getUpperFlowRateBound(candidateI);
 
                     GasLibIntersection neighborI = conversion.getIntersection((GasNode) neighbor);
-                    Amount<VolumetricFlowRate> balanceN = scenario.getBalance(neighborI);
-                    Amount<VolumetricFlowRate> lowerFlowRateBoundN = scenario.getLowerFlowRateBound(neighborI);
-                    Amount<VolumetricFlowRate> upperFlowRateBoundN = scenario.getUpperFlowRateBound(neighborI);
-                    Amount sum = balanceN.plus(balanceC);
-                    Amount sumL = lowerFlowRateBoundC.plus(lowerFlowRateBoundN);
-                    Amount sumU = upperFlowRateBoundC.plus(upperFlowRateBoundN);
+                    double balanceN = scenario.getBalance(neighborI);
+                    double lowerFlowRateBoundN = scenario.getLowerFlowRateBound(neighborI);
+                    double upperFlowRateBoundN = scenario.getUpperFlowRateBound(neighborI);
+                    double sum = balanceN + balanceC;
+                    double sumL = lowerFlowRateBoundC + lowerFlowRateBoundN;
+                    double sumU = upperFlowRateBoundC + upperFlowRateBoundN;
 
                     if (DEBUG) {
                         System.out.println(lowerFlowRateBoundC + " " + lowerFlowRateBoundN + " " + upperFlowRateBoundC + " " + upperFlowRateBoundN + " " + sumL + " " + sumU);
                     }
 
-                    if (sumU.isLessThan(Amount.valueOf("0 m^3/h"))) {
-                        if (balanceN.equals(Amount.valueOf("0 m^3/h"))) {
+                    if (sumU < (0 * UnitsTools.m3/UnitsTools.hr)) {
+                        if (balanceN == (0 * UnitsTools.m3/UnitsTools.hr)) {
                             networkFile.changeNodeTo(neighborI, candidateI);
                         }
-                        if (balanceN.isGreaterThan((Amount<VolumetricFlowRate>) Amount.valueOf("0 m^3/h"))) {
+                        if (balanceN > (0 * UnitsTools.m3/UnitsTools.hr)) {
                             networkFile.changeNodeTo(neighborI, candidateI);
                         }
                         GasLibScenarioNode scenarioNode = scenario.getNode(neighborI);
                         scenarioNode.setType(EXIT);
 
-                        if (sumL.equals(sumU)) {
-                            scenarioNode.setFlowBound(sumL.times(-1.0));
+                        if (sumL == sumU) {
+                            scenarioNode.setFlowBound(sumL*-1.0);
                         } else {
-                            scenarioNode.setUpperFlowBound(sumU.times(-1.0));
-                            scenarioNode.setLowerFlowBound(sumL.times(-1.0));
+                            scenarioNode.setUpperFlowBound(sumU*-1.0);
+                            scenarioNode.setLowerFlowBound(sumL*-1.0);
                         }
 
                         //scenario.updateFlowBounds(neighborI, sumL, sumU);
-                        if (sumL.approximates(sumU)) {
+                        if (sumL == sumU) {
                             //
                         }
-                    } else if (sumL.isGreaterThan(Amount.valueOf("0 m^3/h"))) {
-                        if (balanceN.equals(Amount.valueOf("0 m^3/h"))) {
+                    } else if (sumL > (0 * UnitsTools.m3/UnitsTools.hr)) {
+                        if (balanceN == (0 * UnitsTools.m3/UnitsTools.hr)) {
                             networkFile.changeNodeTo(neighborI, candidateI);
                         }
-                        if (balanceN.isGreaterThan((Amount<VolumetricFlowRate>) Amount.valueOf("0 m^3/h"))) {
+                        if (balanceN > (0 * UnitsTools.m3/UnitsTools.hr)) {
                             networkFile.changeNodeTo(neighborI, candidateI);
                         }
                         GasLibScenarioNode scenarioNode = scenario.getNode(neighborI);
                         scenarioNode.setType(ENTRY);
 
-                        if (sumL.equals(sumU)) {
+                        if (sumL == sumU) {
                             scenarioNode.setFlowBound(sumL);
                         } else {
                             scenarioNode.setUpperFlowBound(sumU);
                             scenarioNode.setLowerFlowBound(sumL);
                         }
                     } else {
-                        if (balanceN.equals(Amount.valueOf("0 m^3/h"))) {
+                        if (balanceN == (0 * UnitsTools.m3/UnitsTools.hr)) {
                             networkFile.changeNodeTo(neighborI, candidateI);
                         }
-                        if (balanceN.isLessThan((Amount<VolumetricFlowRate>) Amount.valueOf("0 m^3/h"))) {
+                        if (balanceN < (0 * UnitsTools.m3/UnitsTools.hr)) {
                             networkFile.changeNodeTo(neighborI, candidateI);
                         }
                         GasLibScenarioNode scenarioNode = scenario.getNode(neighborI);
                         scenarioNode.setType(ENTRY);
 
                         //System.err.println("Warning: " + sumL);
-                        //sumL = sumL.times(0.0);
-                        if (sumL.equals(sumU)) {
+                        if (sumL == sumU) {
                             scenarioNode.setFlowBound(sumL);
                         } else {
                             scenarioNode.setUpperFlowBound(sumU);
@@ -574,51 +557,51 @@ public class BoundPropagation<N, E extends AbstractEdge<N>> {
                     
                     GasLibScenarioNode candidateSN = scenario.getNode(candidateI);
                     GasLibScenarioNode neighborSN = scenario.getNode(neighborI);
-                    Amount beta = edgeParameters.get(leafEdge);
+                    double beta = edgeParameters.get(leafEdge);
                     if (candidateSN.hasLowerPressureBound()) {
-                        Amount oldLBPSq = candidateSN.getLowerPressureBound();
-                        oldLBPSq = oldLBPSq.pow(2);
-                        Amount lowerFlowSq = candidateSN.getLowerFlowRateBound().times(Amount.valueOf("0.82 kg/m^3"));
-                        lowerFlowSq = lowerFlowSq.abs().times(lowerFlowSq);
-                        Amount newLBPSq;
+                        double oldLBPSq = candidateSN.getLowerPressureBound();
+                        oldLBPSq = oldLBPSq*oldLBPSq;
+                        double lowerFlowSq = candidateSN.getLowerFlowRateBound()*(0.82 * UnitsTools.kg/UnitsTools.m3);
+                        lowerFlowSq = lowerFlowSq * lowerFlowSq;
+                        double newLBPSq;
                         if (leafEdge.start().equals(candidate)) {
-                            newLBPSq = oldLBPSq.minus(beta.times(lowerFlowSq));
+                            newLBPSq = oldLBPSq - (beta*lowerFlowSq);
                         } else {
-                            newLBPSq = oldLBPSq.plus(beta.times(lowerFlowSq));
+                            newLBPSq = oldLBPSq + (beta*lowerFlowSq);
                         }
-                        if (newLBPSq.isLessThan(Amount.valueOf("1.0267 bar^2"))) {
-                            newLBPSq = Amount.valueOf("1.0267 bar^2");
+                        if (newLBPSq < (1.0267 * UnitsTools.bar*UnitsTools.bar)) {
+                            newLBPSq = 1.0267 * UnitsTools.bar*UnitsTools.bar;
                         }
-                        Amount newLBP = newLBPSq.sqrt();
+                        double newLBP = Math.sqrt(newLBPSq);
                         
-                        if (!neighborSN.hasLowerPressureBound() || newLBP.isGreaterThan(neighborSN.getLowerPressureBound())) {
+                        if (!neighborSN.hasLowerPressureBound() || newLBP > neighborSN.getLowerPressureBound()) {
                             neighborSN.setLowerPressureBound(newLBP);
                             //System.out.println(newLBP);
-                            if (newLBP.toText().indexOf("NaN") >= 0) {
+                            if (newLBP == 0) {
                                 System.out.println(beta + " " + candidateSN.getLowerPressureBound() + " " + newLBP + " " + newLBPSq);
                             }
                         }
                     }
                     if (candidateSN.hasUpperPressureBound()) {
-                        Amount oldUBPSq = candidateSN.getUpperPressureBound();
-                        oldUBPSq = oldUBPSq.pow(2);
-                        Amount upperFlowSq = candidateSN.getUpperFlowRateBound().times(Amount.valueOf("0.82 kg/m^3"));
-                        upperFlowSq = upperFlowSq.abs().times(upperFlowSq);
-                        Amount newUBPSq;
+                        double oldUBPSq = candidateSN.getUpperPressureBound();
+                        oldUBPSq = oldUBPSq*oldUBPSq;
+                        double upperFlowSq = candidateSN.getUpperFlowRateBound() * (0.82 * UnitsTools.kg/UnitsTools.m3);
+                        upperFlowSq = upperFlowSq * upperFlowSq;
+                        double newUBPSq;
                         if (leafEdge.start().equals(candidate)) {
-                            newUBPSq = oldUBPSq.minus(beta.times(upperFlowSq));
+                            newUBPSq = oldUBPSq - (beta*upperFlowSq);
                         } else {
-                            newUBPSq = oldUBPSq.plus(beta.times(upperFlowSq));
+                            newUBPSq = oldUBPSq + (beta*upperFlowSq);
                         }
-                        if (newUBPSq.isLessThan(Amount.valueOf("0 bar^2"))) {
-                            newUBPSq = Amount.valueOf("0 bar^2");
+                        if (newUBPSq < 0 * UnitsTools.bar*UnitsTools.bar) {
+                            newUBPSq = 0 * UnitsTools.bar*UnitsTools.bar;
                         }
-                        if (newUBPSq.isLessThan(Amount.valueOf("1.01325 bar^2"))) {
-                            newUBPSq = Amount.valueOf("1.01325 bar^2");
+                        if (newUBPSq < 1.01325 * UnitsTools.bar*UnitsTools.bar) {
+                            newUBPSq = 1.01325 * UnitsTools.bar*UnitsTools.bar;
                         } 
-                        Amount newUBP = newUBPSq.sqrt();
+                        double newUBP = Math.sqrt(newUBPSq);
                        
-                        if (!neighborSN.hasUpperPressureBound() || newUBP.isLessThan(neighborSN.getUpperPressureBound())) {
+                        if (!neighborSN.hasUpperPressureBound() || newUBP < neighborSN.getUpperPressureBound()) {
                             neighborSN.setUpperPressureBound(newUBP);
                             //System.out.println(newUBP);
                         }                        
@@ -695,14 +678,14 @@ public class BoundPropagation<N, E extends AbstractEdge<N>> {
         LinkedList<GasLibIntersection> makeSource = new LinkedList<>();
         if (networkFile.getIntersections() instanceof GasLibIntersections) {
             for (GasLibIntersection i : networkFile.getIntersections().getMap().values()) {
-                Amount<VolumetricFlowRate> balance = scenario.getLowerFlowRateBound(i);
-                if (balance.isLessThan((Amount<VolumetricFlowRate>) Amount.valueOf("0 m^3/h")) && !(i instanceof GasLibSink)) {
+                double balance = scenario.getLowerFlowRateBound(i);
+                if (balance < (0 * UnitsTools.m3/UnitsTools.hr) && !(i instanceof GasLibSink)) {
                     makeSink.add(i);
                 }
-                if (balance.equals(Amount.valueOf("0 m^3/h"))) {
+                if (balance == (0 * UnitsTools.m3/UnitsTools.hr)) {
 
                 }
-                if (balance.isGreaterThan((Amount<VolumetricFlowRate>) Amount.valueOf("0 m^3/h")) && !(i instanceof GasLibSource)) {
+                if (balance > (0 * UnitsTools.m3/UnitsTools.hr) && !(i instanceof GasLibSource)) {
                     makeSource.add(i);
                 }
             }
@@ -749,7 +732,7 @@ public class BoundPropagation<N, E extends AbstractEdge<N>> {
     }
 
     public void update() {
-        networkFile.update((Map<GasEdge, Amount>) edgeParameters);
+        networkFile.update((Map<GasEdge, Double>) edgeParameters);
     }
 
 }

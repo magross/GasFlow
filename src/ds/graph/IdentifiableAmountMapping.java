@@ -20,8 +20,7 @@
 package ds.graph;
 
 import java.util.Arrays;
-import javax.measure.quantity.Quantity;
-import org.jscience.physics.amount.Amount;
+import units.UnitsTools;
 
 /**
  * The <code>IdentifiableIntegerMapping</code> class represents a mapping from a
@@ -38,12 +37,12 @@ import org.jscience.physics.amount.Amount;
  * are to be mapped to integers. <code>D</code> must implement 
  * {@link Identifiable}.
  */
-public class IdentifiableAmountMapping<D extends Identifiable, Q extends Quantity> implements Cloneable {
+public class IdentifiableAmountMapping<D extends Identifiable, Q extends Number> implements Cloneable {
 
     /**
      * The array storing all associations. Must not be <code>null</code>.
      */
-    protected Amount<Q>[] mapping;
+    protected double[] mapping;
 
     protected IdentifiableAmountMapping() {
     }
@@ -55,11 +54,11 @@ public class IdentifiableAmountMapping<D extends Identifiable, Q extends Quantit
                 maxId = x.id();
             }
         }
-        mapping = new Amount[maxId + 1];
+        mapping = new double[maxId + 1];
     }
 
     public IdentifiableAmountMapping(IdentifiableAmountMapping<D,Q> iim) {
-        mapping = new Amount[iim.getDomainSize()];
+        mapping = new double[iim.getDomainSize()];
         System.arraycopy(iim.mapping, 0, mapping, 0, mapping.length);
     }
 
@@ -71,7 +70,7 @@ public class IdentifiableAmountMapping<D extends Identifiable, Q extends Quantit
      * @param mapping the array defining the initial mapping.
      * @exception NullPointerException if <code>mapping</code> is null.
      */
-    protected IdentifiableAmountMapping(Amount<Q>[] mapping) {
+    protected IdentifiableAmountMapping(double[] mapping) {
         this.mapping = mapping;
     }
 
@@ -83,7 +82,7 @@ public class IdentifiableAmountMapping<D extends Identifiable, Q extends Quantit
      * @exception NegativeArraySizeException if <code>value</code> is negative.
      */
     public IdentifiableAmountMapping(int domainSize) {
-        mapping = new Amount[domainSize];
+        mapping = new double[domainSize];
     }
 
     /*
@@ -111,7 +110,7 @@ public class IdentifiableAmountMapping<D extends Identifiable, Q extends Quantit
      * @see #setDomainSize
      * @see Identifiable
      */
-    public Amount<Q> get(D identifiableObject) {
+    public double get(D identifiableObject) {
         return mapping[identifiableObject.id()];
     }
 
@@ -136,7 +135,7 @@ public class IdentifiableAmountMapping<D extends Identifiable, Q extends Quantit
      * @see #setDomainSize
      * @see Identifiable
      */
-    public void set(D identifiableObject, Amount<Q> value) {
+    public void set(D identifiableObject, double value) {
         if (identifiableObject == null) {
             throw new RuntimeException("IdentifiableObject contains null, value contains " + value + ".");
         }
@@ -275,7 +274,7 @@ public class IdentifiableAmountMapping<D extends Identifiable, Q extends Quantit
      * @exception NegativeArraySizeException if <code>value</code> is negative.
      */
     public void setDomainSize(int value) {
-        Amount[] newMapping = new Amount[value];
+        double[] newMapping = new double[value];
         System.arraycopy(
                 mapping, 0,
                 newMapping, 0,
@@ -347,7 +346,7 @@ public class IdentifiableAmountMapping<D extends Identifiable, Q extends Quantit
     public int hashCode() {
         int sum = 0;
         for (int i = 0; i < mapping.length; i++) {
-            sum += mapping[i].getEstimatedValue();
+            sum += mapping[i];
         }
         return sum;
     }

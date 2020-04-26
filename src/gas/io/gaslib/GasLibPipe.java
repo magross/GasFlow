@@ -8,21 +8,8 @@ package gas.io.gaslib;
 import gas.io.Pipe;
 import gas.io.XMLProperty;
 import gas.quantity.HeatTransferCoefficient;
-import javax.measure.quantity.Area;
-import javax.measure.quantity.Dimensionless;
-import javax.measure.quantity.Duration;
-import javax.measure.quantity.Length;
-import javax.measure.quantity.Pressure;
-import javax.measure.quantity.Velocity;
-import static javax.measure.unit.NonSI.BAR;
-import javax.measure.unit.SI;
-import static javax.measure.unit.SI.KELVIN;
-import static javax.measure.unit.SI.METER;
-import static javax.measure.unit.SI.SECOND;
-import static javax.measure.unit.SI.WATT;
-import static javax.measure.unit.Unit.ONE;
-import org.jscience.physics.amount.Amount;
-import org.jscience.physics.amount.Constants;
+import units.UnitsTools;
+import units.qual.*;
 
 /**
  *
@@ -30,207 +17,126 @@ import org.jscience.physics.amount.Constants;
  */
 public class GasLibPipe extends GasLibConnection implements Pipe {
 
-    private Amount<Length> diameter;
-    private Amount<HeatTransferCoefficient> heatTransferCoefficient;
-    private Amount<Length> length;
-    private Amount<Pressure> pressureMax;
-    private Amount<Length> roughness;
+    private double diameter;
+    private double heatTransferCoefficient;
+    private double length;
+    private double pressureMax;
+    private double roughness;
 
     public GasLibPipe() {
         super();
     }
 
     public GasLibPipe(String id, GasLibIntersection start, GasLibIntersection end, String startId, String endId,
-            Amount length) {
+            double length) {
         super();
         this.id = id;
         from = start;
         fromId = startId;
         to = end;
         toId = endId;
-        this.diameter = Amount.valueOf(500, SI.MILLIMETER);
-        this.roughness = Amount.valueOf(0.05, SI.MILLIMETER);
+        this.diameter = 500 * UnitsTools.mm;
+        this.roughness = 0.05 * UnitsTools.mm;
         this.length = length;
-        heatTransferCoefficient = (Amount<HeatTransferCoefficient>) Amount.valueOf(2, WATT.divide(METER).divide(METER).divide(KELVIN));
-        pressureMax = Amount.valueOf(200, BAR);
+        heatTransferCoefficient = 2 * UnitsTools.W/UnitsTools.m/UnitsTools.m/UnitsTools.K;
+        pressureMax = 200 * UnitsTools.bar;
     }
 
-    public static void main(String[] args) {
-        System.out.println(Amount.valueOf(2, WATT.divide(METER).divide(METER).divide(KELVIN)));
+    public double computeCrossSection() {
+        return diameter * diameter * (Math.PI / 4);
     }
 
-    public Amount<Area> computeCrossSection() {
-        return (Amount<Area>) diameter.times(diameter).times(Math.PI / 4);
-    }
-
-    public Amount<Dimensionless> computeSiamCoefficient(GasLibNetworkFile networkFile) {
-        Amount lambda = getLength()
-                .times(-1.0)
-                .times(computeNikuradseFrictionFactor())
-                .times(networkFile.getMeanSpecificGasConstant())
-                .times(computePapayCompressibilityFactor(networkFile))
-                .times(networkFile.getMeanTemperature())
-                .divide(computeCrossSection())
-                .divide(computeCrossSection())
-                .divide(getDiameter());
-        /*
-        Amount s = Constants.g
-                .times(2.0)
-                .times(computeSlope())
-                .times(getLength())
-                .divide(networkFile.getMeanSpecificGasConstant())
-                .divide(computePapayCompressibilityFactor(networkFile))
-                .divide(networkFile.getMeanTemperature());*/
+    public double computeSiamCoefficient(GasLibNetworkFile networkFile) {
+        double lambda = getLength()*-1.0*computeNikuradseFrictionFactor()*networkFile.getMeanSpecificGasConstant()
+                *computePapayCompressibilityFactor(networkFile)*networkFile.getMeanTemperature()
+                /computeCrossSection()/computeCrossSection()/getDiameter();
         return lambda;
     }
 
-    public Amount<Dimensionless> computeNikuradseFrictionFactor() {
-        double diameterM = diameter.doubleValue(METER);
-        double roughnessM = roughness.doubleValue(METER);
+    public double computeNikuradseFrictionFactor() {
+        double diameterM = diameter;
+        double roughnessM = roughness;
         double relativeRoughness = roughnessM / diameterM;
         double frictionFactor = Math.pow(1.138 - 2 * Math.log10(relativeRoughness), -2);
-        return Amount.valueOf(frictionFactor, ONE);
+        return frictionFactor;
     }
 
-    public Amount<Pressure> getMeanPressure() {
-        double minOfMax = Math.min(getTo().getPressureMax().doubleValue(BAR), getFrom().getPressureMax().doubleValue(BAR));
-        double maxOfMin = Math.max(getFrom().getPressureMin().doubleValue(BAR), getTo().getPressureMin().doubleValue(BAR));
-        return Amount.valueOf(0.5 * (minOfMax + maxOfMin), BAR);
+    public @bar double getMeanPressure() {
+        double minOfMax = Math.min(getTo().getPressureMax(), getFrom().getPressureMax());
+        double maxOfMin = Math.max(getFrom().getPressureMin(), getTo().getPressureMin());
+        return 0.5 * (minOfMax + maxOfMin) * UnitsTools.bar;
     }
 
-    public Amount<Dimensionless> computePapayCompressibilityFactor(GasLibNetworkFile constants) {
-        double tr = constants.getMeanReducedTemperature().doubleValue(Dimensionless.UNIT);
-        double pr = ((Amount<Dimensionless>) getMeanPressure().divide(constants.getMeanPseudocriticalPressure())).doubleValue(Dimensionless.UNIT);
+    public double computePapayCompressibilityFactor(GasLibNetworkFile constants) {
+        double tr = constants.getMeanReducedTemperature();
+        double pr = getMeanPressure()/constants.getMeanPseudocriticalPressure();
         double z = 1 - 3.52 * pr * Math.exp(-2.26 * tr) + 0.247 * pr * pr * Math.exp(-1.878 * tr);
-        return Amount.valueOf(z, Dimensionless.UNIT);
+        return z;
     }
 
-    public Amount<Dimensionless> computeSlope() {
-        return (Amount<Dimensionless>) getTo().getHeight().minus(getFrom().getHeight()).divide(getLength());
+    public double computeSlope() {
+        return (getTo().getHeight() - getFrom().getHeight())/getLength();
     }
 
-    /*
-    public Amount<Dimensionless> computeReynoldsNumber(Amount volumetricFlow) {
-        Amount rho = Amount.valueOf(0.82, KILOGRAM.divide(METER.pow(3)));
-        Amount eta = Amount.valueOf(0.0000119, KILOGRAM.divide(METER).divide(SECOND));
-        return rho.divide(eta.times(roughness).times(PI)).times(volumetricFlow).times(4);
-    } */
- /*
-    // in m^3 / s
-    public Amount computeHoeferFrictionFactor(Amount volumetricFlow) {
-        Amount R = computeReynoldsNumber(volumetricFlow);
-        double d2 = Math.log10(R.doubleValue(ONE) / 7.0);
-        Amount d12 = Amount.valueOf(4.518, ONE).divide(R).times(d2);        
-        Amount d3 = d12.plus(roughness.divide(3.71).divide(diameter));
-        double denom = Math.pow(2*Math.log10(d3.doubleValue(ONE)), -2);
-        return Amount.valueOf(denom, ONE);
-    } */
-    public Amount computeTimelessCoefficient(Amount<Velocity> c) {
-        Amount<Area> crossSection = computeCrossSection();
+    public double computeTimelessCoefficient(@mPERs double c) {
+        double crossSection = computeCrossSection();
         // lambda
-        Amount friction = computeNikuradseFrictionFactor();
+        double friction = computeNikuradseFrictionFactor();
         // c^2
-        Amount c2 = c.times(c);
+        double c2 = c*c;
         // c^4
-        Amount c4 = c2.times(c2);
+        double c4 = c2*c2;
         // D / c^2 * length * friction factor
-        Amount Dc2ll = diameter.divide(c2.times(friction).times(getLength()));
+        double Dc2ll = UnitsTools.mm_to_m(diameter)/(c2*friction*UnitsTools.mm_to_m(getLength()));
         // gh'D / (c^4 * friction)
-        Amount ghDc4l = computeSlope().times(Constants.g).times(diameter).divide(c4).divide(friction);
-        Amount result = crossSection.times(crossSection).times(Dc2ll.plus(ghDc4l)).to(METER.pow(2).times(SECOND.pow(2)));
+        double ghDc4l = computeSlope()*UnitsTools.gravity*UnitsTools.mm_to_m(diameter)/c4/friction;
+        double result = crossSection/crossSection*Dc2ll + ghDc4l;
         return result;
     }
 
-    /*
-    // in m^3 / s
-    public Amount computeTimelessHoeferCoefficient(Amount<Velocity> c, Amount volumetricFlow) {
-        Amount<Area> crossSection = computeCrossSection();
-        // lambda
-        Amount friction = computeHoeferFrictionFactor(volumetricFlow);
-        // c^2
-        Amount c2 = c.times(c);
-        // c^4
-        Amount c4 = c2.times(c2);
-        // D / c^2 * length * friction factor
-        Amount Dc2ll = diameter.divide(c2.times(friction).times(getLength()));
-        // gh'D / (c^4 * friction)
-        Amount ghDc4l = computeSlope().times(Constants.g).times(diameter).divide(c4).divide(friction);
-        Amount result = crossSection.times(crossSection).times(Dc2ll.plus(ghDc4l)).to(METER.pow(2).times(SECOND.pow(2)));
-        return result;
-    } */
-    public Amount computeStartpointPressure(Amount<Velocity> c, Amount<Pressure> start, Amount flow) {
-        Amount beta = computeTimelessCoefficient(c);
-        beta = beta.times(Amount.valueOf("3600 s")).times(Amount.valueOf("3600 s"));
-        Amount pi = start.pow(2);
-        //System.out.println(beta);
-        //System.out.println(flow.pow(2).divide(beta));
-        //System.out.println(pi);
-        //System.out.println(flow.pow(2).divide(beta).minus(pi).abs().sqrt().to(BAR));
-        return flow.pow(2).divide(beta).plus(pi).abs().sqrt().to(BAR);
+    public double computeStartpointPressure(double c, double start, double flow) {
+        double beta = computeTimelessCoefficient(c);
+        beta = beta * (3600 * UnitsTools.s) * (3600 * UnitsTools.s);
+        double pi = start*start;
+        return ((flow*flow/beta) + Math.sqrt(pi));
     }
 
-    /*
-    public Amount computeStartpointPressureH(Amount<Velocity> c, Amount<Pressure> start, Amount flow) {        
-        Amount beta = computeTimelessHoeferCoefficient(c, flow.divide(Amount.valueOf(1, HOUR)).divide(Amount.valueOf(0.82, KILOGRAM.divide(METER.pow(3)))));
-        beta = beta.times(Amount.valueOf("3600 s")).times(Amount.valueOf("3600 s"));
-        Amount pi = start.pow(2);
-        //System.out.println(beta);
-        //System.out.println(flow.pow(2).divide(beta));
-        //System.out.println(pi);
-        //System.out.println(flow.pow(2).divide(beta).minus(pi).abs().sqrt().to(BAR));
-        return flow.pow(2).divide(beta).plus(pi).abs().sqrt().to(BAR);
-    } */
-    public Amount computeEndpointPressure(Amount<Velocity> c, Amount<Pressure> start, Amount flow) {
-        Amount beta = computeTimelessCoefficient(c);
-        beta = beta.times(Amount.valueOf("3600 s")).times(Amount.valueOf("3600 s"));
-        Amount pi = start.pow(2);
-        //System.out.println(beta);
-        //System.out.println(flow.pow(2).divide(beta));
-        //System.out.println(pi);
-        //System.out.println(flow.pow(2).divide(beta).minus(pi).abs().sqrt().to(BAR));
-        return flow.pow(2).divide(beta).minus(pi).abs().sqrt().to(BAR);
+    public double computeEndpointPressure(double c, double start, double flow) {
+        double beta = computeTimelessCoefficient(c);
+        beta = beta * (3600 * UnitsTools.s) * (3600 * UnitsTools.s);
+        double pi = start*start;
+        return ((flow*flow/beta) - Math.sqrt(pi));
     }
 
-    /*
-    public Amount computeEndpointPressureH(Amount<Velocity> c, Amount<Pressure> start, Amount flow) {        
-        Amount beta = computeTimelessHoeferCoefficient(c, flow.divide(Amount.valueOf(1, HOUR)).divide(Amount.valueOf(0.82, KILOGRAM.divide(METER.pow(3)))));
-        beta = beta.times(Amount.valueOf("3600 s")).times(Amount.valueOf("3600 s"));
-        Amount pi = start.pow(2);
-        //System.out.println(beta);
-        //System.out.println(flow.pow(2).divide(beta));
-        //System.out.println(pi);
-        //System.out.println(flow.pow(2).divide(beta).minus(pi).abs().sqrt().to(BAR));
-        return flow.pow(2).divide(beta).minus(pi).abs().sqrt().to(BAR);
-    } */
-    public Amount computeMassFlow(Amount<Pressure> start, Amount<Pressure> end, Amount<Duration> duration) {
-        return null;
+    public double computeMassFlow(double start, double end, double duration) {
+        return 0;
     }
 
-    public Amount computePiDifference(Amount massFlow) {
-        return null;
+    public double computePiDifference(double massFlow) {
+        return 0;
     }
 
-    public Amount<Length> getDiameter() {
+    public double getDiameter() {
         return diameter;
     }
 
-    public Amount<HeatTransferCoefficient> getHeatTransferCoefficient() {
+    public double getHeatTransferCoefficient() {
         return heatTransferCoefficient;
     }
 
-    public Amount<Length> getLength() {
+    public double getLength() {
         return length;
     }
 
-    public void setLength(Amount<Length> length) {
+    public void setLength(double length) {
         this.length = length;
     }
 
-    public Amount<Pressure> getPressureMax() {
+    public double getPressureMax() {
         return pressureMax;
     }
 
-    public Amount<Length> getRoughness() {
+    public double getRoughness() {
         return roughness;
     }
 
@@ -255,7 +161,7 @@ public class GasLibPipe extends GasLibConnection implements Pipe {
         if (getProperties().containsKey("pressureMax")) {
             pressureMax = getProperties().get("pressureMax").getAmount();
         } else {
-            pressureMax = null;
+            pressureMax = 0;
         }
         roughness = getProperties().get("roughness").getAmount();
     }
@@ -270,23 +176,23 @@ public class GasLibPipe extends GasLibConnection implements Pipe {
             properties.put(property.getName(), property);
         }
         if (!getProperties().containsKey("length")) {
-            XMLProperty property = new XMLProperty("length", length.getUnit().toString(), length.doubleValue(length.getUnit()) + "");
+            XMLProperty property = new XMLProperty("length", "meter", length + "");
             properties.put(property.getName(), property);
         }
         if (!getProperties().containsKey("diameter")) {
-            XMLProperty property = new XMLProperty("diameter", diameter.getUnit().toString(), diameter.doubleValue(diameter.getUnit()) + "");
+            XMLProperty property = new XMLProperty("diameter", "meter", diameter + "");
             properties.put(property.getName(), property);
         }
         if (!getProperties().containsKey("roughness")) {
-            XMLProperty property = new XMLProperty("roughness", roughness.getUnit().toString(), roughness.doubleValue(roughness.getUnit()) + "");
+            XMLProperty property = new XMLProperty("roughness", "meter", roughness + "");
             properties.put(property.getName(), property);
         }
         if (!getProperties().containsKey("pressureMax")) {
-            XMLProperty property = new XMLProperty("pressureMax", pressureMax.getUnit().toString(), pressureMax.doubleValue(pressureMax.getUnit()) + "");
+            XMLProperty property = new XMLProperty("pressureMax", "bar", pressureMax + "");
             properties.put(property.getName(), property);
         }
         if (!getProperties().containsKey("heatTransferCoefficient")) {
-            XMLProperty property = new XMLProperty("heatTransferCoefficient", "W_per_m_square_per_K", heatTransferCoefficient.doubleValue(heatTransferCoefficient.getUnit()) + "");
+            XMLProperty property = new XMLProperty("heatTransferCoefficient", "W_per_m_square_per_K", heatTransferCoefficient + "");
             properties.put(property.getName(), property);
         }
     }

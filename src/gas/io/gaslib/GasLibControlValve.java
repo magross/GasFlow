@@ -5,8 +5,8 @@
 
 package gas.io.gaslib;
 
-import javax.measure.quantity.Pressure;
-import org.jscience.physics.amount.Amount;
+
+import units.UnitsTools;
 import org.w3c.dom.Element;
 
 /**
@@ -17,12 +17,12 @@ public class GasLibControlValve extends GasLibConnection {
 
     private boolean gasPreheaterExisting;
     private boolean internalBypassRequired;
-    private Amount<Pressure> pressureDifferentialMax;
-    private Amount<Pressure> pressureDifferentialMin;
-    private Amount<Pressure> pressureInMin;
-    private Amount<Pressure> pressureLossIn;
-    private Amount<Pressure> pressureLossOut;
-    private Amount<Pressure> pressureOutMax;
+    private double pressureDifferentialMax;
+    private double pressureDifferentialMin;
+    private double pressureInMin;
+    private double pressureLossIn;
+    private double pressureLossOut;
+    private double pressureOutMax;
 
     public boolean isGasPreheaterExisting() {
         return gasPreheaterExisting;
@@ -32,27 +32,27 @@ public class GasLibControlValve extends GasLibConnection {
         return internalBypassRequired;
     }
 
-    public Amount<Pressure> getPressureDifferentialMax() {
+    public double getPressureDifferentialMax() {
         return pressureDifferentialMax;
     }
 
-    public Amount<Pressure> getPressureDifferentialMin() {
+    public double getPressureDifferentialMin() {
         return pressureDifferentialMin;
     }
 
-    public Amount<Pressure> getPressureInMin() {
+    public double getPressureInMin() {
         return pressureInMin;
     }
 
-    public Amount<Pressure> getPressureLossIn() {
+    public double getPressureLossIn() {
         return pressureLossIn;
     }
 
-    public Amount<Pressure> getPressureLossOut() {
+    public double getPressureLossOut() {
         return pressureLossOut;
     }
 
-    public Amount<Pressure> getPressureOutMax() {
+    public double getPressureOutMax() {
         return pressureOutMax;
     }
 

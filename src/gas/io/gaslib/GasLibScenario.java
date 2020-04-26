@@ -15,13 +15,10 @@ import gas.io.gaslib.GasLibScenarioNode.Type;
 import static gas.io.gaslib.GasLibScenarioNode.Type.ENTRY;
 import java.util.HashSet;
 import java.util.Set;
-import javax.measure.quantity.Pressure;
-import javax.measure.quantity.VolumetricFlowRate;
-import javax.measure.unit.Unit;
-import org.jscience.physics.amount.Amount;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import units.UnitsTools;
 
 /**
  *
@@ -30,12 +27,7 @@ import org.w3c.dom.Node;
 public class GasLibScenario extends XMLElementWithID {
 
     private double probability;
-    //private Amount<Temperature> temperatureMax;
-    //private Amount<Temperature> temperatureMin;
-
-    //private Map<GasLibIntersection, Pressure> lowerPressureBounds;
-    //private Map<GasLibIntersection, Pressure> upperPressureBounds;
-    //private Map<GasLibIntersection, MassFlowRate> balance;
+    
     private BiMap<String, GasLibScenarioNode> scenarioNodes;
 
     public GasLibScenario() {
@@ -70,11 +62,11 @@ public class GasLibScenario extends XMLElementWithID {
         }
     }
 
-    public Amount<Pressure> getLowerPressureBound(XMLIntersection i) {
+    public double getLowerPressureBound(XMLIntersection i) {
         return scenarioNodes.get(i.getId()).getLowerPressureBound();
     }
 
-    public Amount<Pressure> getUpperPressureBound(XMLIntersection i) {
+    public double getUpperPressureBound(XMLIntersection i) {
         return scenarioNodes.get(i.getId()).getLowerPressureBound();
     }
 
@@ -87,16 +79,16 @@ public class GasLibScenario extends XMLElementWithID {
         return scenarioNodes.get(i.getId());
     }
 
-    public Amount<VolumetricFlowRate> getBalance(XMLIntersection i) {
+    public double getBalance(XMLIntersection i) {
         GasLibScenarioNode n = scenarioNodes.get(i.getId());
         if (n == null) {
-            return (Amount<VolumetricFlowRate>) Amount.valueOf("0 m^3/h");
+            return 0 * UnitsTools.m3/UnitsTools.hr;
         }
         //assert n.getLowerFlowRateBound().equals(n.getUpperFlowRateBound());
         if (getNode(i).getType() == ENTRY) {
             return n.getLowerFlowRateBound();
         } else {
-            return n.getLowerFlowRateBound().times(-1.0);
+            return n.getLowerFlowRateBound()*-1.0;
         }
 
     }
@@ -114,9 +106,9 @@ public class GasLibScenario extends XMLElementWithID {
                 System.out.println(node);
                 System.out.println(node.hasExactFlowBound());
                 System.out.println(node.getFlowRateBound());
-                System.out.println(node.getFlowRateBound().approximates(Amount.valueOf("0 m^3/h")));
+                System.out.println(node.getFlowRateBound() == (0 * UnitsTools.m3/UnitsTools.hr));
             }
-            if (node.hasExactFlowBound() && node.getFlowRateBound().approximates(Amount.valueOf("0 m^3/h"))) {
+            if (node.hasExactFlowBound() && node.getFlowRateBound() == (0 * UnitsTools.m3/UnitsTools.hr)) {
                 continue;
             }
             Element scenarioNodeElement = document.createElement("node");
@@ -149,64 +141,64 @@ public class GasLibScenario extends XMLElementWithID {
         if (!DEBUG) {
             return true;
         }
-        Amount<VolumetricFlowRate> supplyL = (Amount<VolumetricFlowRate>) Amount.valueOf("0 m^3/h");
-        Amount<VolumetricFlowRate> supplyU = (Amount<VolumetricFlowRate>) Amount.valueOf("0 m^3/h");
-        Amount<VolumetricFlowRate> demandL = (Amount<VolumetricFlowRate>) Amount.valueOf("0 m^3/h");
-        Amount<VolumetricFlowRate> demandU = (Amount<VolumetricFlowRate>) Amount.valueOf("0 m^3/h");
-        Amount<VolumetricFlowRate> sum = (Amount<VolumetricFlowRate>) Amount.valueOf("0 m^3/h");
+        double supplyL = 0 * UnitsTools.m3/UnitsTools.hr;
+        double supplyU = 0 * UnitsTools.m3/UnitsTools.hr;
+        double demandL = 0 * UnitsTools.m3/UnitsTools.hr;
+        double demandU = 0 * UnitsTools.m3/UnitsTools.hr;
+        double sum = 0 * UnitsTools.m3/UnitsTools.hr;
         double sumD = 0.0;
         double sumB = 0.0;
         for (GasLibScenarioNode node : scenarioNodes.values()) {
-            if (node.hasExactFlowBound() && node.getFlowRateBound().approximates(Amount.valueOf("0 m^3/h"))) {
+            if (node.hasExactFlowBound() && node.getFlowRateBound() == (0 * UnitsTools.m3/UnitsTools.hr)) {
                 continue;
             }
-            Amount<VolumetricFlowRate> lowerFlowRateBound = node.getLowerFlowRateBound();
-            Amount<VolumetricFlowRate> upperFlowRateBound = node.getUpperFlowRateBound();
+            double lowerFlowRateBound = node.getLowerFlowRateBound();
+            double upperFlowRateBound = node.getUpperFlowRateBound();
             if (node.getType() == Type.ENTRY) {
                 //System.out.println("ENTRY " + node.getId() + " " + lowerFlowRateBound + " " + upperFlowRateBound);
-                supplyL = supplyL.plus(lowerFlowRateBound);
-                supplyU = supplyU.plus(upperFlowRateBound);
-                sum = sum.plus(lowerFlowRateBound);
-                sumD += lowerFlowRateBound.doubleValue((Unit<VolumetricFlowRate>) Unit.valueOf("m^3/h"));
-                sumB += node.getFlowRateBound().doubleValue((Unit<VolumetricFlowRate>) Unit.valueOf("m^3/h"));
+                supplyL = supplyL + lowerFlowRateBound;
+                supplyU = supplyU + upperFlowRateBound;
+                sum = sum + lowerFlowRateBound;
+                sumD += lowerFlowRateBound;
+                sumB += node.getFlowRateBound();
             } else if (node.getType() == Type.EXIT) {
                 //System.out.println("EXIT " + node.getId() + " "  + lowerFlowRateBound + " " + upperFlowRateBound);
-                demandL = demandL.plus(lowerFlowRateBound);
-                demandU = demandU.plus(upperFlowRateBound);
-                sum = sum.minus(lowerFlowRateBound);
-                sumD -= lowerFlowRateBound.doubleValue((Unit<VolumetricFlowRate>) Unit.valueOf("m^3/h"));
-                sumB -= node.getFlowRateBound().doubleValue((Unit<VolumetricFlowRate>) Unit.valueOf("m^3/h"));
+                demandL = demandL + lowerFlowRateBound;
+                demandU = demandU + upperFlowRateBound;
+                sum = sum - lowerFlowRateBound;
+                sumD -= lowerFlowRateBound;
+                sumB -= node.getFlowRateBound();
             }
         }
         if (DEBUG) {
             System.out.println("Validation: " + supplyL + " " + supplyU + " " + demandL + " " + demandU + " ");
         }
         if (DEBUG) {
-            System.out.println(sum + " " + supplyL.minus(demandL) + " " + sumD + " " + sumB);
+            System.out.println(sum + " " + (supplyL - demandL) + " " + sumD + " " + sumB);
         }
         return true;
     }
 
-    public Amount<VolumetricFlowRate> getLowerFlowRateBound(GasLibIntersection i) {
+    public double getLowerFlowRateBound(GasLibIntersection i) {
         if (scenarioNodes.get(i.getId()) == null) {
-            return (Amount<VolumetricFlowRate>) Amount.valueOf("0 m^3/h");
+            return 0 * UnitsTools.m3/UnitsTools.hr;
         }
         if (getNode(i).getType() == ENTRY) {
             return scenarioNodes.get(i.getId()).getLowerFlowRateBound();
         } else {
-            return scenarioNodes.get(i.getId()).getLowerFlowRateBound().times(-1.0);
+            return scenarioNodes.get(i.getId()).getLowerFlowRateBound()*-1.0;
         }
 
     }
 
-    public Amount<VolumetricFlowRate> getUpperFlowRateBound(GasLibIntersection i) {
+    public double getUpperFlowRateBound(GasLibIntersection i) {
         if (scenarioNodes.get(i.getId()) == null) {
-            return (Amount<VolumetricFlowRate>) Amount.valueOf("0 m^3/h");
+            return 0 * UnitsTools.m3/UnitsTools.hr;
         }
         if (getNode(i).getType() == ENTRY) {
             return scenarioNodes.get(i.getId()).getUpperFlowRateBound();
         } else {
-            return scenarioNodes.get(i.getId()).getUpperFlowRateBound().times(-1.0);
+            return scenarioNodes.get(i.getId()).getUpperFlowRateBound()*-1.0;
         }
     }
 
@@ -215,27 +207,27 @@ public class GasLibScenario extends XMLElementWithID {
         if (n == null) {
             return false;
         }
-        boolean b = !n.getUpperFlowRateBound().approximates(Amount.valueOf("0 m^3/h")) && !n.getLowerFlowRateBound().approximates(Amount.valueOf("0 m^3/h"));
-        return (n != null) && ((n.hasExactFlowBound() && !n.getFlowRateBound().approximates(Amount.valueOf("0 m^3/h")))
+        boolean b = !(n.getUpperFlowRateBound() == (0 * UnitsTools.m3/UnitsTools.hr)) && !(n.getLowerFlowRateBound() == (0 * UnitsTools.m3/UnitsTools.hr));
+        return (n != null) && ((n.hasExactFlowBound() && !(n.getFlowRateBound() == (0 * UnitsTools.m3/UnitsTools.hr)))
                 || b);
     }
 
     public void printBalance() {
-        Amount<VolumetricFlowRate> supplyL = (Amount<VolumetricFlowRate>) Amount.valueOf("0 m^3/h");
-        Amount<VolumetricFlowRate> supplyU = (Amount<VolumetricFlowRate>) Amount.valueOf("0 m^3/h");
-        Amount<VolumetricFlowRate> demandL = (Amount<VolumetricFlowRate>) Amount.valueOf("0 m^3/h");
-        Amount<VolumetricFlowRate> demandU = (Amount<VolumetricFlowRate>) Amount.valueOf("0 m^3/h");
-        Amount<VolumetricFlowRate> sum = (Amount<VolumetricFlowRate>) Amount.valueOf("0 m^3/h");
+        double supplyL = 0 * UnitsTools.m3/UnitsTools.hr;
+        double supplyU = 0 * UnitsTools.m3/UnitsTools.hr;
+        double demandL = 0 * UnitsTools.m3/UnitsTools.hr;
+        double demandU = 0 * UnitsTools.m3/UnitsTools.hr;
+        double sum = 0 * UnitsTools.m3/UnitsTools.hr;
         double sumD = 0.0;
         double sumB = 0.0;
         for (GasLibScenarioNode node : scenarioNodes.values()) {
-            if (node.hasExactFlowBound() && node.getFlowRateBound().approximates(Amount.valueOf("0 m^3/h"))) {
+            if (node.hasExactFlowBound() && node.getFlowRateBound() == (0 * UnitsTools.m3/UnitsTools.hr)) {
                 continue;
             }
             if (node.getType() == Type.ENTRY) {
-                System.out.println(String.valueOf(node.getFlowRateBound().doubleValue((Unit<VolumetricFlowRate>) Unit.valueOf("m^3/h")) / 1000).replace(".", ","));
+                System.out.println(String.valueOf(node.getFlowRateBound() / 1000).replace(".", ","));
             } else {
-                System.out.println("-" + String.valueOf(node.getFlowRateBound().doubleValue((Unit<VolumetricFlowRate>) Unit.valueOf("m^3/h")) / 1000).replace(".", ","));
+                System.out.println("-" + String.valueOf(node.getFlowRateBound() / 1000).replace(".", ","));
             }
             
         }

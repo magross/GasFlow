@@ -12,12 +12,8 @@ import ds.graph.IdentifiableAmountMapping;
 import ds.graph.Network;
 import ds.graph.Node;
 import gas.quantity.EdgeConstant;
-import javax.measure.quantity.Duration;
-import javax.measure.quantity.Pressure;
-import javax.measure.quantity.Velocity;
-import javax.measure.quantity.Volume;
-import static javax.measure.unit.SI.SECOND;
-import org.jscience.physics.amount.Amount;
+import units.UnitsTools;
+import units.qual.*;
 
 /**
  *
@@ -26,22 +22,22 @@ import org.jscience.physics.amount.Amount;
 public class ForwardComputationProblem {
 
     private Graph<Node, Edge> network;
-    private IdentifiableAmountMapping<Edge, EdgeConstant> edgeConstants;
-    private IdentifiableAmountMapping<Node, Pressure> pressures;
-    private Amount<Velocity> speedOfSound;
-    private Amount<Duration> timeStep;
-    private IdentifiableAmountMapping<Node, Volume> volumes;
+    private IdentifiableAmountMapping<Edge, Double> edgeConstants;
+    private IdentifiableAmountMapping<Node, Double> pressures;
+    private double speedOfSound;
+    private double timeStep;
+    private IdentifiableAmountMapping<Node, Double> volumes;
 
     public ForwardComputationProblem() {
     }
 
     
     
-    public ForwardComputationProblem(Network network, IdentifiableAmountMapping<Node, Pressure> pressures, IdentifiableAmountMapping<Node, Volume> volumes, IdentifiableAmountMapping<Edge, EdgeConstant> edgeConstants) {
+    public ForwardComputationProblem(Network network, IdentifiableAmountMapping<Node, Double> pressures, IdentifiableAmountMapping<Node, Double> volumes, IdentifiableAmountMapping<Edge, Double> edgeConstants) {
         this.network = network;
         this.edgeConstants = edgeConstants;
         this.pressures = pressures;
-        this.timeStep = Amount.valueOf(1.0, SECOND);
+        this.timeStep = 1.0 * UnitsTools.s;
         this.volumes = volumes;
     }
 
@@ -49,31 +45,31 @@ public class ForwardComputationProblem {
         return network;
     }
 
-    public IdentifiableAmountMapping<Edge, EdgeConstant> getEdgeConstants() {
+    public IdentifiableAmountMapping<Edge, Double> getEdgeConstants() {
         return edgeConstants;
     }
 
-    public IdentifiableAmountMapping<Node, Pressure> getPressures() {
+    public IdentifiableAmountMapping<Node, Double> getPressures() {
         return pressures;
     }
 
-    public Amount<Velocity> getSpeedOfSound() {
+    public @mPERs double getSpeedOfSound() {
         return speedOfSound;
     }
 
-    public void setSpeedOfSound(Amount<Velocity> speedOfSound) {
+    public void setSpeedOfSound(double speedOfSound) {
         this.speedOfSound = speedOfSound;
     }
 
-    public Amount<Duration> getTimeStep() {
+    public double getTimeStep() {
         return timeStep;
     }
 
-    public void setTimeStep(Amount<Duration> timeStep) {
+    public void setTimeStep(double timeStep) {
         this.timeStep = timeStep;
     }
 
-    public IdentifiableAmountMapping<Node, Volume> getVolumes() {
+    public IdentifiableAmountMapping<Node, Double> getVolumes() {
         return volumes;
     }
 

@@ -8,8 +8,8 @@ package gas.ds;
 import ds.graph.GasEdge;
 import ds.graph.GasNode;
 import ds.graph.Graph;
-import javax.measure.quantity.Duration;
-import org.jscience.physics.amount.Amount;
+
+import units.UnitsTools;
 
 /**
  *
@@ -19,7 +19,7 @@ public class ForwardComputationStep {
 
     private final GasFlow gasFlow;
     private final Graph<GasNode, GasEdge> network;
-    private Amount<Duration> timeStep;
+    private double timeStep;
 
     public ForwardComputationStep(Graph<GasNode, GasEdge> network) {
         this.network = network;
@@ -30,11 +30,11 @@ public class ForwardComputationStep {
         return gasFlow;
     }
 
-    public Amount<Duration> getTimeStep() {
+    public double getTimeStep() {
         return timeStep;
     }
 
-    public void setTimeStep(Amount<Duration> timeStep) {
+    public void setTimeStep(double timeStep) {
         this.timeStep = timeStep;
     }
 }

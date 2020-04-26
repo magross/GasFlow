@@ -6,9 +6,9 @@
 package gas.io.anaconda;
 
 import gas.io.XMLProperty;
-import javax.measure.quantity.VolumetricFlowRate;
-import javax.measure.unit.Unit;
-import org.jscience.physics.amount.Amount;
+
+
+import units.UnitsTools;
 
 /**
  *
@@ -16,14 +16,14 @@ import org.jscience.physics.amount.Amount;
  */
 public abstract class AnacondaTerminalNode extends AnacondaIntersection {
 
-    private Amount<VolumetricFlowRate> flowMax;
-    private Amount<VolumetricFlowRate> flowMin;
+    private double flowMax;
+    private double flowMin;
 
-    public Amount<VolumetricFlowRate> getFlowMax() {
+    public double getFlowMax() {
         return flowMax;
     }
 
-    public Amount<VolumetricFlowRate> getFlowMin() {
+    public double getFlowMin() {
         return flowMin;
     }
     
@@ -32,13 +32,13 @@ public abstract class AnacondaTerminalNode extends AnacondaIntersection {
         super.parseProperties();
         XMLProperty fMax = getProperties().get("flowMax");
         if (fMax.getUnit().equals("1000m_cube_per_hour")) {
-            flowMax = Amount.valueOf(Double.parseDouble(fMax.getValue()) * 1000, (Unit<VolumetricFlowRate>) Unit.valueOf("m^3 / h"));
+            flowMax = Double.parseDouble(fMax.getValue()) * 1000 * UnitsTools.m3/UnitsTools.hr;
         } else {
             throw new AssertionError("Volumetric flow rate unit unknown: " + fMax.getUnit());
         }
         XMLProperty fMin = getProperties().get("flowMin");
         if (fMin.getUnit().equals("1000m_cube_per_hour")) {
-            flowMin = Amount.valueOf(Double.parseDouble(fMax.getValue()) * 1000, (Unit<VolumetricFlowRate>) Unit.valueOf("m^3 / h"));
+            flowMin = Double.parseDouble(fMax.getValue()) * 1000 * UnitsTools.m3/UnitsTools.hr;
         } else {
             throw new AssertionError("Volumetric flow rate unit unknown: " + fMin.getUnit());
         }        

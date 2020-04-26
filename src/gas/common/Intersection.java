@@ -6,9 +6,9 @@
 package gas.common;
 
 import java.util.List;
-import javax.measure.quantity.Length;
-import javax.measure.quantity.Pressure;
-import org.jscience.physics.amount.Amount;
+
+
+import units.UnitsTools;
 
 /**
  *
@@ -19,13 +19,13 @@ public interface Intersection<C extends Connection> {
 
     List<C> getConnections();
 
-    Amount<Length> getHeight();
+    double getHeight();
 
     String getId();
 
-    Amount<Pressure> getPressureMax();
+    double getPressureMax();
 
-    Amount<Pressure> getPressureMin();
+    double getPressureMin();
 
     double getX();
 

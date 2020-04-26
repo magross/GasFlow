@@ -5,17 +5,14 @@
  */
 package gas.quantity;
 
-import javax.measure.quantity.Quantity;
-import static javax.measure.unit.SI.GRAM;
-import static javax.measure.unit.SI.MOLE;
-import javax.measure.unit.Unit;
+import units.UnitsTools;
 
 /**
  *
  * @author gross
  */
-public interface MolarMass extends Quantity {
+public interface MolarMass {
 
-    public static final Unit<MolarMass> UNIT = (Unit<MolarMass>) GRAM.divide(MOLE);
+    public static final double UNIT = UnitsTools.g/UnitsTools.mol;
     
 }

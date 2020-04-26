@@ -6,8 +6,8 @@
 
 package gas.io;
 
-import javax.measure.quantity.Length;
-import org.jscience.physics.amount.Amount;
+
+import units.UnitsTools;
 
 /**
  *
@@ -15,8 +15,8 @@ import org.jscience.physics.amount.Amount;
  */
 public interface Pipe {
     
-    public Amount<Length> getDiameter();
-    public Amount<Length> getLength();
-    public Amount<Length> getRoughness();
+    public double getDiameter();
+    public double getLength();
+    public double getRoughness();
     
 }

@@ -19,11 +19,7 @@ import gas.io.tikz.TikZDataFile;
 import gas.problem.SourceSinkForwardComputationProblem;
 import java.util.LinkedList;
 import java.util.Queue;
-import javax.measure.quantity.Pressure;
-import static javax.measure.unit.NonSI.BAR;
-import static javax.measure.unit.SI.KILOGRAM;
-import static javax.measure.unit.SI.SECOND;
-import org.jscience.physics.amount.Amount;
+import units.UnitsTools;
 
 /**
  *
@@ -81,14 +77,14 @@ public class SourceSinkForwardComputation {
             for (int i = 0; i < sourcePressures.length; i++) {
                 for (int timeStepIndex = 0; timeStepIndex < timeSteps.length; timeStepIndex++) {
 
-                    problem = onionGenerator.generate(layers, Amount.valueOf(sourcePressures[i], BAR), Amount.valueOf(sinkPressures[i], BAR));
+                    problem = onionGenerator.generate(layers, sourcePressures[i] * UnitsTools.bar, sinkPressures[i] * UnitsTools.bar);
 
                     DynamicNetwork<GasNode, GasEdge> dynamicNetwork = (DynamicNetwork<GasNode, GasEdge>) problem.getNetwork();
                     GasNode source = problem.getSource();
                     GasNode sink = problem.getSink();
 
-                    problem.getInitialPressures().set(dynamicNetwork.nodes().iterator().next(), Amount.valueOf(sourcePressures[i], BAR));
-                    problem.setTimeStep(Amount.valueOf(timeSteps[timeStepIndex], SECOND));
+                    problem.getInitialPressures().set(dynamicNetwork.nodes().iterator().next(), sourcePressures[i] * UnitsTools.bar);
+                    problem.setTimeStep(timeSteps[timeStepIndex] * UnitsTools.s);
 
                     ISO3ForwardComputationStep algo = new ISO3ForwardComputationStep();
 
@@ -100,28 +96,19 @@ public class SourceSinkForwardComputation {
                         GasFlow next = step.getNextGasFlow();
 
                         problem.setInitialPressures(next.getPressures());
-                        
-                        //Amount<Pressure> old = problem.getInitialPressures().get(source);
-                        
-                        problem.getInitialPressures().set(source, Amount.valueOf(sourcePressures[i], BAR));
-                        
-                        //System.out.println(Amount.valueOf(sourcePressures[i], BAR) + " " + old);
-                        //if (.doubleValue(BAR) > 2 ) {
-                            
-                        //}
-                        //System.out.println(problem.getInitialPressures().get(source));
+                                                
+                        problem.getInitialPressures().set(source, sourcePressures[i] * UnitsTools.bar);
+
                         problem.assumeExactPressures();
 
-                        Amount pd = problem.getInitialPressures().get(sink).minus(Amount.valueOf(sinkPressures[i], BAR));
-                        Amount x = pd.divide(problem.getSpeedOfSound().pow(2)).times(sink.getVolume()).to(KILOGRAM);
+                        double pd = problem.getInitialPressures().get(sink) - sinkPressures[i] * UnitsTools.bar;
+                        double x = UnitsTools.g_to_kg(pd/(problem.getSpeedOfSound()*problem.getSpeedOfSound())*sink.getVolume());
                         
                         
                         // Output Mass Floe
-                        //file.addDataPoint(timeSteps[timeStepIndex]*(t+1), x.doubleValue(KILOGRAM));
+                        file.addDataPoint(timeSteps[timeStepIndex]*(t+1), x);
                         
-                        file.addDataPoint(timeSteps[timeStepIndex]*(t+1), x.doubleValue(KILOGRAM));
-                        
-                        problem.getInitialPressures().set(sink, Amount.valueOf(sinkPressures[i], BAR));
+                        problem.getInitialPressures().set(sink, sinkPressures[i] * UnitsTools.bar);
                     }
                     String filename = "Onion_%1$s_%2$s_%3$s_%4$s.txt";
                     //filename = "edge.tex";

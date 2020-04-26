@@ -6,9 +6,9 @@
 package gas.io.anaconda;
 
 import gas.io.XMLProperty;
-import javax.measure.quantity.VolumetricFlowRate;
-import javax.measure.unit.Unit;
-import org.jscience.physics.amount.Amount;
+
+
+import units.UnitsTools;
 
 /**
  *
@@ -16,9 +16,9 @@ import org.jscience.physics.amount.Amount;
  */
 public class AnacondaShortPipe extends AnacondaConnection {
 
-    private Amount<VolumetricFlowRate> flowInit;
+    private double flowInit;
 
-    public Amount<VolumetricFlowRate> getFlowInit() {
+    public double getFlowInit() {
         return flowInit;
     }
     
@@ -32,7 +32,7 @@ public class AnacondaShortPipe extends AnacondaConnection {
         super.parseProperties();
         XMLProperty fMax = getProperties().get("flowInit");
         if (fMax.getUnit().equals("1000m_cube_per_hour")) {
-            flowInit = Amount.valueOf(Double.parseDouble(fMax.getValue()) * 1000, (Unit<VolumetricFlowRate>) Unit.valueOf("m^3 / h"));
+            flowInit = Double.parseDouble(fMax.getValue()) * 1000 * UnitsTools.m3/UnitsTools.hr;
         } else {
             throw new AssertionError("Volumetric flow rate unit unknown: " + fMax.getUnit());
         }
